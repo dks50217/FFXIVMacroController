@@ -16,6 +16,10 @@ namespace FFXIVMacroController.Helper
 {
     public class EventHelper
     {
+        /// <summary>
+        /// 測試遊戲事件
+        /// </summary>
+        /// <param name="seerEvent"></param>
         public static void SendTest(GameStarted seerEvent)
         {
             var game = seerEvent.Game;
@@ -50,7 +54,34 @@ namespace FFXIVMacroController.Helper
             });
         }
 
-        private static List<MacroModel> ConvertJsonToList(string jsonText)
+        /// <summary>
+        /// 發送遊戲事件
+        /// </summary>
+        /// <param name="game"></param>
+        /// <param name="jsonText"></param>
+        public static async Task SendInput(Game game, List<MacroModel> macroList)
+        {
+            Console.WriteLine("Trying to doot on game pid " + game.Pid + ".");
+
+            foreach (var item in macroList)
+            {
+                Console.WriteLine($"Key: {item.key}");
+
+                switch (item.type)
+                {
+                    case Types.button:
+                        if (game != null && !await game.SendKeyArray(item.key)) Console.WriteLine("Failed to call game pid " + game.Pid + " to input keys :(");
+                        break;
+                    case Types.mouse:
+                        break;
+                }
+
+                await Task.Delay(item.sleep);
+            }
+        }
+
+
+        public static List<MacroModel> ConvertJsonToList(string jsonText)
         {
             List<MacroModel> macroList = new List<MacroModel>();
 
@@ -67,7 +98,7 @@ namespace FFXIVMacroController.Helper
                     model.type = type;
                 }
 
-                string commandStr = element.GetProperty("command").GetString();
+                string commandStr = element.GetProperty("key").GetString();
 
                 if (Enum.TryParse(commandStr, out Keys key))
                 {

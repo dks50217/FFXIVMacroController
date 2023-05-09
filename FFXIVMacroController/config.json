@@ -1,12 +1,12 @@
 [
   {
     "type": "button",
-    "command": "D1",
+    "key": "D1",
     "sleep": 3000
   },
   {
     "type": "button",
-    "command": "D2",
+    "key": "D2",
     "sleep": 3000
   }
 ]

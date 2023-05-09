@@ -12,6 +12,7 @@ namespace FFXIVMacroController.Model
         public Keys key { get; set; }
         public int sleep { get; set; }
         public Types type { get; set; }
+        public string? keyName => Enum.GetName(key);
     }
 
     public enum Types

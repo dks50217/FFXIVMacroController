@@ -48,7 +48,7 @@ app.MapPost("/Init", async () =>
 
     var json = File.ReadAllText("config.json");
 
-    var sampleList = EventHelper.ConvertJsonToList(json);
+    var sampleData = EventHelper.ConvertJsonToList(json);
 
     var keyList = Enum.GetValues(typeof(Keys)).Cast<Keys>().Select(n => new
     {
@@ -63,7 +63,6 @@ app.MapPost("/Init", async () =>
         value = n
     }).Distinct();
 
-    //var jsonString = JsonSerializer.Serialize(sampleList);
 
     await Task.Delay(1000);
 
@@ -71,7 +70,7 @@ app.MapPost("/Init", async () =>
 
     var resultObj = new
     {
-        macroList = sampleList,
+        rootData = sampleData,
         keyOptions = keyList,
         typeOptions = typeList,
         gamePath = game?.GamePath
@@ -80,7 +79,7 @@ app.MapPost("/Init", async () =>
     return JsonSerializer.Serialize(resultObj);
 });
 
-app.MapPost("/Start", async (MacroRootModel model) =>
+app.MapPost("/Start", async (CategoryModel model) =>
 {
     var game = BmpSeer.Instance.Games.Values.FirstOrDefault();
 

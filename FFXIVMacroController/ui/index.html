@@ -11,60 +11,73 @@
 <body>
     <div id="app">
         <el-row :gutter="20">
-            <el-col :span="24" :offset="6">
+            <el-col :span="24">
                 <el-row :gutter="10">
-                    <el-col :span="12">
-                        <el-table-draggable v-if="form.macroList">
-                            <el-table :data="form.macroList"
-                                      v-loading="!isInit"
-                                      size="small"
-                                      border
-                                      style="width: 100%">
-                                <el-table-column v-for="column in tableColumns"
-                                                 :label="column.label"
-                                                 :width="column.width">
-                                    <template slot-scope="scope">
-                                        <el-input v-if="column.type == 'input'" size="mini" v-model="scope.row[column.prop]"></el-input>
-                                        <el-button v-else-if="column.type == 'button'" type="danger" icon="el-icon-delete" circle size="mini" v-on:click="column.event(scope)"></el-button>
-                                        <el-select v-else-if="column.type == 'select'" size="mini" filterable v-model="scope.row[column.prop]" placeholder="">
-                                            <el-option v-for="option in Options[column.options]"
-                                                       :key="option[column.optionValue]"
-                                                       :label="option[column.optionLabel]"
-                                                       :value="option[column.optionValue]">
-                                            </el-option>
-                                        </el-select>
-                                        <span v-else>{{scope.row[column.prop]}}</span>
-                                    </template>
-                                </el-table-column>
-                            </el-table>
-                        </el-table-draggable>
+                    <el-tabs v-if="form.rootData" type="border-card" v-model="form.rootData.rootID" @tab-click="handleTabClick">
+                        <el-tab-pane v-for="item in form.rootData.categoryList" :label="item.name" :name="item.id">
+                            <el-col :span="12">
+                                <el-table-draggable>
+                                    <el-table :data="item.macroList"
+                                              v-loading="!isInit"
+                                              size="small"
+                                              border
+                                              style="width: 100%">
+                                        <el-table-column v-for="column in tableColumns"
+                                                         :label="column.label"
+                                                         :width="column.width">
+                                            <template slot-scope="scope">
+                                                <el-input v-if="column.type == 'input'" size="mini" v-model="scope.row[column.prop]"></el-input>
+                                                <el-button v-else-if="column.type == 'button'" type="danger" icon="el-icon-delete" circle size="mini" v-on:click="column.event(item,scope)"></el-button>
+                                                <el-select v-else-if="column.type == 'select'" size="mini" filterable v-model="scope.row[column.prop]" placeholder="">
+                                                    <el-option v-for="option in Options[column.options]"
+                                                               :key="option[column.optionValue]"
+                                                               :label="option[column.optionLabel]"
+                                                               :value="option[column.optionValue]">
+                                                    </el-option>
+                                                </el-select>
+                                                <span v-else>{{scope.row[column.prop]}}</span>
+                                            </template>
+                                        </el-table-column>
+                                    </el-table>
+                                </el-table-draggable>
+                            </el-col>
 
-                        <el-skeleton v-else :rows="6" animated />
-                    </el-col>
-
-                    <el-col :span="12">
-                        <el-row>
-                            <el-form>
-                                <el-form-item label="動作">
-                                    <el-button type="success" icon="el-icon-plus" circle @click="handleAdd" :disabled="isStart"></el-button>
-                                    <el-button type="primary" icon="el-icon-video-play" :disabled="!isInit" :loading="loading" circle @click="onStart"></el-button>
-                                    <el-button type="danger" icon="el-icon-video-pause" :disabled="!isStart" circle @click="onStop"></el-button>
-                                </el-form-item>
-                            </el-form>
-                        </el-row>
-                        <el-row>
-                            <el-form :inline="true" class="demo-form-inline">
-                                <el-form-item label="重複次數">
-                                    <el-input-number size="small" v-model="form.repeat" placeholder="重複次數"></el-input-number>
-                                </el-form-item>
-                            </el-form>
-                        </el-row>
-                    </el-col>
+                            <el-col :span="12">
+                                <el-row>
+                                    <el-form>
+                                        <el-form-item label="動作">
+                                            <el-button type="success" icon="el-icon-plus" circle @click="handleAdd(item.macroList)" :disabled="isStart"></el-button>
+                                            <el-button type="primary" icon="el-icon-video-play" :disabled="!isInit" :loading="loading" circle @click="onStart"></el-button>
+                                            <el-button type="danger" icon="el-icon-video-pause" :disabled="!isStart" circle @click="onStop"></el-button>
+                                        </el-form-item>
+                                    </el-form>
+                                </el-row>
+                                <el-row>
+                                    <el-form :inline="true" class="demo-form-inline">
+                                        <el-form-item label="重複次數">
+                                            <el-input-number size="small" v-model="item.repeat" placeholder="重複次數"></el-input-number>
+                                        </el-form-item>
+                                    </el-form>
+                                </el-row>
+                            </el-col>
+                        </el-tab-pane>
+                        <el-tab-pane name="add"
+                                     ref="add">
+                            <span slot="label">
+                                <el-button slot="reference"
+                                           size="small"
+                                           icon="el-icon-plus"
+                                           @click.stop="addCategory()" />
+                            </span>
+                        </el-tab-pane>
+                    </el-tabs>
+                    <el-skeleton v-else :rows="6" animated />
                 </el-row>
 
+
                 <!--<el-row :gutter="20">
-                    <raw-displayer title="macroList" :value="form.macroList"></raw-displayer>
-                </el-row>-->
+        <raw-displayer title="macroList" :value="form.macroList"></raw-displayer>
+    </el-row>-->
                 <el-row :gutter="20" style="margin:10px">
                     <el-col :span="12">
                         <el-input placeholder="路徑" v-model="infoData.gamePath" disabled>
@@ -75,8 +88,19 @@
                     </el-col>
                 </el-row>
 
-            </el-col>
-        </el-row>
+                <el-dialog title="新增類別" :visible.sync="form.dialogFormVisible">
+                    <el-form :model="form">
+                        <el-form-item label="測試" :label-width="form.formLabelWidth">
+                            
+                        </el-form-item>
+                    </el-form>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click="form.dialogFormVisible = false">取消</el-button>
+                        <el-button type="primary" @click="form.dialogFormVisible = false">確定</el-button>
+                    </div>
+                </el-dialog>
+
+            </el-row>
     </div>
 
     <script src="./js/mixin.js" type="text/javascript"></script>

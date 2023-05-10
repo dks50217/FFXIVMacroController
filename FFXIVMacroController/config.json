@@ -1,12 +1,36 @@
-[
-  {
-    "type": "button",
-    "key": "D1",
-    "sleep": 3000
-  },
-  {
-    "type": "button",
-    "key": "D2",
-    "sleep": 3000
-  }
-]
+{
+  "rootID": 1,
+  "categoryList": [
+    {
+      "id": 1,
+      "name": "範例A",
+      "category": "action",
+      "repeat": 1,
+      "macroList": [
+        {
+          "type": "button",
+          "key": "D1",
+          "sleep": 3000
+        },
+        {
+          "type": "button",
+          "key": "D2",
+          "sleep": 3000
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "範例B",
+      "repeat": 2,
+      "category": "text",
+      "macroList": [
+        {
+          "type": "button",
+          "key": "D1",
+          "sleep": 3000
+        }
+      ]
+    }
+  ]
+}

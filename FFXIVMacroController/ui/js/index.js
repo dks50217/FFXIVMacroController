@@ -7,13 +7,16 @@
             isStart: false,
             form: {
                 macroList: null,
-                repeat : 1
+                rootData : null,
+                repeat: 1,
+                dialogFormVisible: false,
+                formLabelWidth: '120px'
             }, 
             tableColumns: [
                 { label: '按鍵', prop: 'key', width: 130, type: 'select', options: 'keyOptions', optionLabel: 'label', optionValue:'value' },
                 { label: '類型', prop: 'type', width: 130, type: 'select', options: 'typeOptions', optionLabel: 'label', optionValue: 'value' },
                 { label: '執行後暫停', prop: 'sleep', width: 130, type: 'input' },
-                { label: '刪除', prop: 'keyName', width: 50, type: 'button', event: (item) => { this.handleRemove(item) } }
+                { label: '刪除', prop: 'keyName', width: 50, type: 'button', event: (item, scope) => { this.handleRemove(item, scope) } }
             ],
             Options: {
                 keyOptions: [],
@@ -40,9 +43,11 @@
             _self.isStart = true;
             _self.loading = true;
 
-            console.log(_self.form);
+            let param = _self.form.rootData.categoryList.find(c => c.id == _self.form.rootData.rootID);
 
-            vm.callAPI("../Start", _self.form).load.then(function (response) {
+            console.log(param);
+
+            vm.callAPI("../Start", param).load.then(function (response) {
                 console.log('result', response);
                 _self.loading = false;
                 _self.isStart = false;
@@ -64,14 +69,26 @@
             let _self = this;
             _self.callAPI("../Init").load.then(function (response) {
                 console.log('result', response);
-                _self.form.macroList = response.macroList;
+                _self.form.rootData = response.rootData;
                 _self.Options.keyOptions = response.keyOptions;
                 _self.Options.typeOptions = response.typeOptions;
                 _self.infoData.gamePath = response.gamePath;
                 _self.isInit = true;
+
+                let messageType = response.gamePath ? 'success' : 'error';
+                let messageShow = response.gamePath ? '初始化成功' : '初始化失敗';
+
+                _self.$message({
+                    showClose: true,
+                    message: messageShow,
+                    type: messageType
+                });
             });
         },
-        handleAdd() {
+        handleTabClick() {
+
+        },
+        handleAdd(macroList) {
             let _self = this;
 
             let param = {
@@ -81,11 +98,16 @@
                 "keyName": "D1"
             };
 
-            _self.form.macroList.push(param);
+            macroList.push(param);
         },
-        handleRemove(item) {
+        handleRemove(item, scope) {
             let _self = this;
-            _self.form.macroList.splice(item.$index, 1);
+            item.macroList.splice(scope.$index, 1);
+        },
+        addCategory() {
+            let _self = this;
+            _self.form.dialogFormVisible = true;
+            
         }
     },
     mounted() {

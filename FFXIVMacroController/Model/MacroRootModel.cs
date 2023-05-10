@@ -8,7 +8,8 @@ namespace FFXIVMacroController.Model
 {
     public class MacroRootModel
     {
-        public List<MacroModel> macroList { get; set; }
-        public int repeat { get; set; }
+        //public List<MacroModel> macroList { get; set; }
+        public List<CategoryModel> categoryList { get; set; }
+        public int rootID { get; set; }
     }
 }

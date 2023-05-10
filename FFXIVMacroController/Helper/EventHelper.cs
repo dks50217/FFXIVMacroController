@@ -17,44 +17,6 @@ namespace FFXIVMacroController.Helper
     public class EventHelper
     {
         /// <summary>
-        /// 測試遊戲事件
-        /// </summary>
-        /// <param name="seerEvent"></param>
-        public static void SendTest(GameStarted seerEvent)
-        {
-            var game = seerEvent.Game;
-
-            Console.WriteLine("Detected game pid " + game.Pid + ", sleep a thread for 3000ms to allow Seer to parse the dat files.");
-
-            string jsonText = File.ReadAllText("config.json");
-
-            var macroList = ConvertJsonToList(jsonText);
-
-            Task.Run(async () =>
-            {
-                await Task.Delay(3000);
-
-                Console.WriteLine("Trying to doot on game pid " + game.Pid + ".");
-
-                foreach (var item in macroList)
-                {
-                    Console.WriteLine($"Key: {item.key}");
-
-                    switch (item.type)
-                    {
-                        case Types.button:
-                            if (game != null && !await game.SendKeyArray(item.key)) Console.WriteLine("Failed to call game pid " + game.Pid + " to input keys :(");
-                            break;
-                        case Types.mouse:
-                            break;
-                    }
-
-                    await Task.Delay(item.sleep);
-                }
-            });
-        }
-
-        /// <summary>
         /// 發送遊戲事件
         /// </summary>
         /// <param name="game"></param>
@@ -81,35 +43,53 @@ namespace FFXIVMacroController.Helper
         }
 
 
-        public static List<MacroModel> ConvertJsonToList(string jsonText)
+        public static MacroRootModel ConvertJsonToList(string jsonText)
         {
-            List<MacroModel> macroList = new List<MacroModel>();
-
             JsonDocument jsonDocument = JsonDocument.Parse(jsonText);
+            MacroRootModel rootModel = new MacroRootModel();
 
-            foreach (JsonElement element in jsonDocument.RootElement.EnumerateArray())
+            rootModel.rootID =  jsonDocument.RootElement.GetProperty("rootID").GetInt16();
+            rootModel.categoryList = new List<CategoryModel>();
+            var categoryList = jsonDocument.RootElement.GetProperty("categoryList");
+
+            foreach (JsonElement item in categoryList.EnumerateArray())
             {
-                MacroModel model = new MacroModel();
+                CategoryModel categoryModel = new CategoryModel();
 
-                string typeStr = element.GetProperty("type").GetString();
+                categoryModel.id = item.GetProperty("id").GetInt16();
+                categoryModel.name = item.GetProperty("name").GetString();
+                categoryModel.category  = item.GetProperty("category").GetString();
+                categoryModel.repeat = item.GetProperty("repeat").GetInt16();
+                categoryModel.macroList = new List<MacroModel>();
+                
+                var macroList = item.GetProperty("macroList");
 
-                if (Enum.TryParse(typeStr, out Types type))
+                foreach (var subItem in macroList.EnumerateArray())
                 {
-                    model.type = type;
+                    MacroModel model = new MacroModel();
+
+                    string typeStr = subItem.GetProperty("type").GetString();
+
+                    if (Enum.TryParse(typeStr, out Types type))
+                    {
+                        model.type = type;
+                    }
+
+                    string commandStr = subItem.GetProperty("key").GetString();
+
+                    if (Enum.TryParse(commandStr, out Keys key))
+                    {
+                        model.key = key;
+                    }
+
+                    model.sleep = subItem.GetProperty("sleep").GetInt16();
+                    categoryModel.macroList.Add(model);
                 }
 
-                string commandStr = element.GetProperty("key").GetString();
-
-                if (Enum.TryParse(commandStr, out Keys key))
-                {
-                    model.key = key;
-                }
-
-                model.sleep = element.GetProperty("sleep").GetInt16();
-                macroList.Add(model);
+                rootModel.categoryList.Add(categoryModel);
             }
 
-            return macroList;
+            return rootModel;
         }
     }
 }

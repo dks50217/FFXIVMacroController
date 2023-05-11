@@ -27,8 +27,8 @@
                                                          :width="column.width">
                                             <template slot-scope="scope">
                                                 <el-input v-if="column.type == 'input'" size="mini" v-model="scope.row[column.prop]"></el-input>
-                                                <el-button v-else-if="column.type == 'button'" type="danger" icon="el-icon-delete" circle size="mini" v-on:click="column.event(item,scope)"></el-button>
-                                                <el-select v-else-if="column.type == 'select'" size="mini" filterable v-model="scope.row[column.prop]" placeholder="">
+                                                <el-button v-else-if="column.type == 'button'" :type="column.btnType" :disabled="scope.row.type == 1 && column.prop == 'locate'" :icon="column.icon" circle size="mini" v-on:click="column.event(item,scope)"></el-button>
+                                                <el-select v-else-if="column.type == 'select'" size="mini" :disabled="scope.row.type == 2 && column.options == 'keyOptions'" filterable v-model="scope.row[column.prop]" placeholder="">
                                                     <el-option v-for="option in Options[column.options]"
                                                                :key="option[column.optionValue]"
                                                                :label="option[column.optionLabel]"

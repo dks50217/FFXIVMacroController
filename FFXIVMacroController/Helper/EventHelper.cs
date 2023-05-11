@@ -35,6 +35,7 @@ namespace FFXIVMacroController.Helper
                         if (game != null && !await game.SendKeyArray(item.key)) Console.WriteLine("Failed to call game pid " + game.Pid + " to input keys :(");
                         break;
                     case Types.mouse:
+                        MouseHelper.RunMouseClick(game.Process.MainWindowHandle, item.coordinateX, item.coordinateY);
                         break;
                 }
 
@@ -81,6 +82,15 @@ namespace FFXIVMacroController.Helper
                     {
                         model.key = key;
                     }
+
+
+                    int coordinateX = subItem.GetProperty("coordinateX").GetInt16();
+
+                    model.coordinateX = coordinateX;
+
+                    int coordinateY = subItem.GetProperty("coordinateY").GetInt16();
+
+                    model.coordinateY = coordinateX;
 
                     model.sleep = subItem.GetProperty("sleep").GetInt16();
                     categoryModel.macroList.Add(model);

@@ -12,6 +12,7 @@ using System.Text.Json;
 using FFXIVMacroController.Quotidian.Enums;
 using System.Reflection.Emit;
 using Newtonsoft.Json.Linq;
+using System.ComponentModel;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -93,7 +94,10 @@ app.MapPost("/Start", async (CategoryModel model) =>
         return "";
     }
 
-    await EventHelper.SendInput(game, model.macroList);
+    for (var i = 0; i < model.repeat; i++)
+    {
+        await EventHelper.SendInput(game, model.macroList);
+    }
 
     return "";
 });
@@ -105,6 +109,21 @@ app.MapPost("/Stop", async () =>
     BmpSeer.Instance.Stop();
 
     return "";
+});
+
+app.MapPost("/LocateMouse", async () =>
+{
+    var game = BmpSeer.Instance.Games.Values.FirstOrDefault();
+
+    var (x, y) = MouseHelper.LocateMouse(game.Process.MainWindowHandle);
+
+    var resultObj = new
+    {
+       coordinateX = x,
+       coordinateY = y
+    };
+
+    return JsonSerializer.Serialize(resultObj);
 });
 
 

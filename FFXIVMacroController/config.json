@@ -10,12 +10,16 @@
         {
           "type": "button",
           "key": "D1",
-          "sleep": 3000
+          "sleep": 3000,
+          "coordinateX": 0,
+          "coordinateY": 0
         },
         {
           "type": "button",
           "key": "D2",
-          "sleep": 3000
+          "sleep": 3000,
+          "coordinateX": 0,
+          "coordinateY": 0
         }
       ]
     },
@@ -28,7 +32,9 @@
         {
           "type": "button",
           "key": "D1",
-          "sleep": 3000
+          "sleep": 3000,
+          "coordinateX": 0,
+          "coordinateY": 0
         }
       ]
     }

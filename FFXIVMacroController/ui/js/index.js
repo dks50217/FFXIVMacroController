@@ -5,6 +5,7 @@
             loading: false,
             isInit: false,
             isStart: false,
+            fullscreenLoading: false,
             form: {
                 macroList: null,
                 rootData : null,
@@ -13,10 +14,12 @@
                 formLabelWidth: '120px'
             }, 
             tableColumns: [
-                { label: '按鍵', prop: 'key', width: 130, type: 'select', options: 'keyOptions', optionLabel: 'label', optionValue:'value' },
+                { label: '按鍵', prop: 'key', width: 130, type: 'select', options: 'keyOptions', optionLabel: 'label', optionValue: 'value' },
+                { label: '定位', prop: 'locate', btnType: 'primary', icon: 'el-icon-position', width: 50, type: 'label', type: 'button', event: (item, scope) => { this.handleLocate(item, scope) } },
+                { label: '座標', prop: 'coordinate', width: 130, type: 'label', width: 100 },
                 { label: '類型', prop: 'type', width: 130, type: 'select', options: 'typeOptions', optionLabel: 'label', optionValue: 'value' },
                 { label: '執行後暫停', prop: 'sleep', width: 130, type: 'input' },
-                { label: '刪除', prop: 'keyName', width: 50, type: 'button', event: (item, scope) => { this.handleRemove(item, scope) } }
+                { label: '刪除', prop: 'keyName', btnType: 'danger', icon: 'el-icon-delete' , width: 50, type: 'button', event: (item, scope) => { this.handleRemove(item, scope) } }
             ],
             Options: {
                 keyOptions: [],
@@ -95,7 +98,10 @@
                 "type": 1,
                 "key": 49,
                 "sleep": 3000,
-                "keyName": "D1"
+                "keyName": "D1",
+                "coordinateX": 0,
+                "coordinateY": 0,
+                "coordinate" : "(0,0)"
             };
 
             macroList.push(param);
@@ -107,7 +113,23 @@
         addCategory() {
             let _self = this;
             _self.form.dialogFormVisible = true;
-            
+        },
+        handleLocate(item, scope) {
+            let _self = this;
+
+            const loading = _self.$loading({
+                lock: true,
+                text: '請到對應視窗按下ALT定位滑鼠',
+                spinner: 'el-icon-coordinate',
+                background: 'rgba(0, 0, 0, 0.7)'
+            });
+
+            _self.callAPI("../LocateMouse").load.then(function (response) {
+                scope.row.coordinateX = response.coordinateX;
+                scope.row.coordinateY = response.coordinateY;
+                scope.row.coordinate = "(" + scope.row.coordinateX + "," + scope.row.coordinateY + ")";
+                loading.close();
+            });
         }
     },
     mounted() {

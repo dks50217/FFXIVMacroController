@@ -43,6 +43,12 @@ public static partial class GameExtensions
             }
 
             NativeMethods.SendMessage(game.Process.MainWindowHandle, NativeMethods.WM_KEYDOWN, (IntPtr) baseKey, (IntPtr) 0);
+
+            // (1679,978)
+            //var param = MakeLParam(1679, 978);
+            //NativeMethods.SendMessage(game.Process.MainWindowHandle, NativeMethods.WM_LBUTTONDOWN, IntPtr.Zero, param);
+            //NativeMethods.SendMessage(game.Process.MainWindowHandle, NativeMethods.WM_LBUTTONUP, IntPtr.Zero, param);
+
             await Task.Delay(delay);
 
             sent = true;
@@ -55,10 +61,15 @@ public static partial class GameExtensions
         return sent;
     }
 
-    private static IntPtr CreateLParam(int LoWord, int HiWord)
-    {
-        return (IntPtr)((HiWord << 16) | (LoWord & 0xffff));
-    }
+    //static IntPtr MakeLParam(int x, int y) => (IntPtr)((y << 16) | (x & 0xFFFF));
+    //const int WM_LBUTTONDOWN = 0x201;
+    //const int WM_LBUTTONUP = 0x202;
+    //public static extern void mouse_event(int dwFlags, int dx, int dy, int cButtons, int dwExtraInfo);
+
+    //private static IntPtr CreateLParam(int LoWord, int HiWord)
+    //{
+    //    return (IntPtr)((HiWord << 16) | (LoWord & 0xffff));
+    //}
 
     /// <summary>
     /// Named opposite of behavior, this runs async in this thread, sync to sendmessage the ffxiv game.

@@ -12,6 +12,9 @@ namespace FFXIVMacroController.Model
         public Keys key { get; set; }
         public int sleep { get; set; }
         public Types type { get; set; }
+        public int coordinateX { get; set; }
+        public int coordinateY { get; set; }
+        public string? coordinate => $"({coordinateX},{coordinateY})";
         public string? keyName => Enum.GetName(key);
     }
 

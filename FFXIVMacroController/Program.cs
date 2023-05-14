@@ -54,7 +54,7 @@ app.MapPost("/Init", async () =>
     var keyList = Enum.GetValues(typeof(Keys)).Cast<Keys>().Select(n => new
     {
         label = Enum.GetName(n),
-        value = n
+        value = (int)n
     }).Distinct();
 
 
@@ -82,6 +82,15 @@ app.MapPost("/Init", async () =>
 
 app.MapPost("/Start", async (CategoryModel model) =>
 {
+    if (!BmpSeer.Instance.Started)
+    {
+        BmpSeer.Instance.Start();
+
+        BmpGrunt.Instance.Start();
+
+        await Task.Delay(1000);
+    }
+
     var game = BmpSeer.Instance.Games.Values.FirstOrDefault();
 
     if (game == null)
@@ -94,10 +103,7 @@ app.MapPost("/Start", async (CategoryModel model) =>
         return "";
     }
 
-    for (var i = 0; i < model.repeat; i++)
-    {
-        await EventHelper.SendInput(game, model.macroList);
-    }
+    await EventHelper.SendInput(game, model.macroList);
 
     return "";
 });
@@ -108,11 +114,43 @@ app.MapPost("/Stop", async () =>
 
     BmpSeer.Instance.Stop();
 
-    return "";
+    while (BmpGrunt.Instance.Started || BmpSeer.Instance.Started)
+    {
+        await Task.Delay(20);
+    }
+
+    return true;
+});
+
+app.MapPost("/Save", async (MacroRootModel model) =>
+{
+    bool isSuccess = false;
+    
+    try
+    {
+        string json = JsonSerializer.Serialize(model);
+        File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + @"\config.json", json);
+        isSuccess = true;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(ex.Message);
+    }
+    
+    return isSuccess;
 });
 
 app.MapPost("/LocateMouse", async () =>
 {
+    if (!BmpSeer.Instance.Started)
+    {
+        BmpSeer.Instance.Start();
+
+        BmpGrunt.Instance.Start();
+
+        await Task.Delay(1000);
+    }
+
     var game = BmpSeer.Instance.Games.Values.FirstOrDefault();
 
     var (x, y) = MouseHelper.LocateMouse(game.Process.MainWindowHandle);

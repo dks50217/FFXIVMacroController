@@ -3,38 +3,41 @@
   "categoryList": [
     {
       "id": 1,
-      "name": "範例A",
+      "name": "腳本A",
       "category": "action",
       "repeat": 1,
       "macroList": [
         {
-          "type": "button",
-          "key": "D1",
-          "sleep": 3000,
+          "type": 1,
+          "keyNumber": 49,
+          "sleep": 3,
           "coordinateX": 0,
-          "coordinateY": 0
+          "coordinateY": 0,
+          "inputText": "/echo 123"
         },
         {
-          "type": "button",
-          "key": "D2",
-          "sleep": 3000,
+          "type": 1,
+          "keyNumber": 50,
+          "sleep": 3,
           "coordinateX": 0,
-          "coordinateY": 0
+          "coordinateY": 0,
+          "inputText": "/echo 123"
         }
       ]
     },
     {
       "id": 2,
-      "name": "範例B",
+      "name": "腳本B",
       "repeat": 2,
       "category": "text",
       "macroList": [
         {
-          "type": "button",
-          "key": "D1",
-          "sleep": 3000,
+          "type": 3,
+          "keyNumber": 50,
+          "sleep": 3,
           "coordinateX": 0,
-          "coordinateY": 0
+          "coordinateY": 0,
+          "inputText": "/echo 123"
         }
       ]
     }

@@ -11,6 +11,10 @@ using FFXIVMacroController.Grunt;
 using FFXIVMacroController.Model;
 using FFXIVMacroController.Seer.Events;
 using System.Text.Json;
+using Microsoft.AspNetCore.Components.Forms;
+using static FFXIVMacroController.Helper.ClickOnPointTool;
+using System.Text.RegularExpressions;
+using System.Drawing;
 
 namespace FFXIVMacroController.Helper
 {
@@ -27,7 +31,12 @@ namespace FFXIVMacroController.Helper
 
             foreach (var item in macroList)
             {
+                item.key = (Keys)item.keyNumber;
+
                 Console.WriteLine($"Key: {item.key}");
+
+                var s = TimeSpan.FromSeconds(item.sleep).TotalMilliseconds;
+                item.sleep = Convert.ToInt32(s);
 
                 switch (item.type)
                 {
@@ -35,12 +44,26 @@ namespace FFXIVMacroController.Helper
                         if (game != null && !await game.SendKeyArray(item.key)) Console.WriteLine("Failed to call game pid " + game.Pid + " to input keys :(");
                         break;
                     case Types.mouse:
-                        MouseHelper.RunMouseClick(game.Process.MainWindowHandle, item.coordinateX, item.coordinateY);
+                        ClickOnPointTool.ClickOnPoint(game.Process.MainWindowHandle, item.coordinateX, item.coordinateY);
+                        break;
+                    case Types.text:
+
+                        string[] lines = item.inputText.Split(
+                            new string[] { "\r\n", "\r", "\n" },
+                            StringSplitOptions.None
+                        );
+
+                        foreach (string line in lines)
+                        {
+                            await game.SendLyricLine(line);
+                            await Task.Delay(item.sleep);
+                        }
+
                         break;
                 }
 
                 await Task.Delay(item.sleep);
-            }
+            }  
         }
 
 
@@ -69,20 +92,27 @@ namespace FFXIVMacroController.Helper
                 {
                     MacroModel model = new MacroModel();
 
-                    string typeStr = subItem.GetProperty("type").GetString();
+                    string typeStr = subItem.GetProperty("type").GetRawText();
 
                     if (Enum.TryParse(typeStr, out Types type))
                     {
                         model.type = type;
                     }
 
-                    string commandStr = subItem.GetProperty("key").GetString();
+                    //string commandStr = subItem.GetProperty("key").GetString();
 
-                    if (Enum.TryParse(commandStr, out Keys key))
-                    {
-                        model.key = key;
-                    }
+                    //if (Enum.TryParse(commandStr, out Keys key))
+                    //{
+                    //    model.key = key;
+                    //}
 
+                    var keyNumber = subItem.GetProperty("keyNumber").GetUInt16();
+
+                    model.keyNumber = keyNumber;
+
+                    string inputText = subItem.GetProperty("inputText").GetString();
+
+                    model.inputText = inputText;
 
                     int coordinateX = subItem.GetProperty("coordinateX").GetInt16();
 
@@ -90,7 +120,7 @@ namespace FFXIVMacroController.Helper
 
                     int coordinateY = subItem.GetProperty("coordinateY").GetInt16();
 
-                    model.coordinateY = coordinateX;
+                    model.coordinateY = coordinateY;
 
                     model.sleep = subItem.GetProperty("sleep").GetInt16();
                     categoryModel.macroList.Add(model);

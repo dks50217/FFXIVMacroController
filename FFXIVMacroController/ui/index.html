@@ -23,18 +23,25 @@
                                               border
                                               style="width: 100%">
                                         <el-table-column v-for="column in tableColumns"
+                                                         :fixed="column.fixed"
                                                          :label="column.label"
                                                          :width="column.width">
                                             <template slot-scope="scope">
                                                 <el-input v-if="column.type == 'input'" size="mini" v-model="scope.row[column.prop]"></el-input>
-                                                <el-button v-else-if="column.type == 'button'" :type="column.btnType" :disabled="scope.row.type == 1 && column.prop == 'locate'" :icon="column.icon" circle size="mini" v-on:click="column.event(item,scope)"></el-button>
-                                                <el-select v-else-if="column.type == 'select'" size="mini" :disabled="scope.row.type == 2 && column.options == 'keyOptions'" filterable v-model="scope.row[column.prop]" placeholder="">
+                                                <el-button v-else-if="column.type == 'button'" :type="column.btnType" :disabled="(scope.row.type == 1 || scope.row.type == 3) && column.prop == 'locate'" :icon="column.icon" circle size="mini" v-on:click="column.event(item,scope)"></el-button>
+                                                <el-select v-else-if="column.type == 'select'" size="mini" :disabled="(scope.row.type == 2 || scope.row.type == 3) && column.options == 'keyOptions'" filterable v-model="scope.row[column.prop]" placeholder="">
                                                     <el-option v-for="option in Options[column.options]"
                                                                :key="option[column.optionValue]"
                                                                :label="option[column.optionLabel]"
                                                                :value="option[column.optionValue]">
                                                     </el-option>
                                                 </el-select>
+                                                <el-input v-else-if="column.type == 'textarea'" size="mini" type="textarea"
+                                                          :disabled="(scope.row.type == 1 || scope.row.type == 2)"
+                                                          :rows="2"
+                                                          placeholder="請輸入傳送到遊戲內文字"
+                                                          v-model="scope.row[column.prop]">
+                                                </el-input>
                                                 <span v-else>{{scope.row[column.prop]}}</span>
                                             </template>
                                         </el-table-column>
@@ -49,13 +56,14 @@
                                             <el-button type="success" icon="el-icon-plus" circle @click="handleAdd(item.macroList)" :disabled="isStart"></el-button>
                                             <el-button type="primary" icon="el-icon-video-play" :disabled="!isInit" :loading="loading" circle @click="onStart"></el-button>
                                             <el-button type="danger" icon="el-icon-video-pause" :disabled="!isStart" circle @click="onStop"></el-button>
+                                            <el-button type="success" icon="el-icon-finished" :loading="saveLoader" circle @click="onSave"></el-button>
                                         </el-form-item>
                                     </el-form>
                                 </el-row>
                                 <el-row>
                                     <el-form :inline="true" class="demo-form-inline">
                                         <el-form-item label="重複次數">
-                                            <el-input-number size="small" v-model="item.repeat" placeholder="重複次數"></el-input-number>
+                                            <el-input-number size="small" v-model="form.repeat" placeholder="重複次數"></el-input-number>
                                         </el-form-item>
                                     </el-form>
                                 </el-row>
@@ -88,7 +96,7 @@
                     </el-col>
                 </el-row>
 
-                <el-dialog title="新增類別" :visible.sync="form.dialogFormVisible">
+                <el-dialog title="待新增" :visible.sync="form.dialogFormVisible">
                     <el-form :model="form">
                         <el-form-item label="測試" :label-width="form.formLabelWidth">
                             

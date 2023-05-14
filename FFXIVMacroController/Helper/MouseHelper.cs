@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace FFXIVMacroController.Helper
 {
     public class MouseHelper
@@ -48,6 +49,7 @@ namespace FFXIVMacroController.Helper
         }
 
         private const int VK_MENU = 0x12; // Alt key
+        private const int L_Ctrl = 0xA2;
         private const uint MOUSEEVENTF_LEFTDOWN = 0x0002;
         private const uint MOUSEEVENTF_LEFTUP = 0x0004;
 
@@ -65,7 +67,7 @@ namespace FFXIVMacroController.Helper
             Console.WriteLine("Press Alt to get the mouse position.");
             while (true)
             {
-                if (IsKeyPressed(VK_MENU))
+                if (IsKeyPressed(L_Ctrl))
                     break;
             }
 

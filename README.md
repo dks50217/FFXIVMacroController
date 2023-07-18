@@ -3,6 +3,8 @@ FFXIVMacroController
 
 This is a script tool rewritten based on [BardMusicPlayer](https://github.com/BardMusicPlayer/BardMusicPlayer)
 
+allow you run scripts in the background window, so you can watch YouTube or do other stuff on the same computer at the same time.
+
 # How To Use
 
 - If the selected type is [Text], the message will be sent to the game dialogue box.
@@ -11,7 +13,6 @@ This is a script tool rewritten based on [BardMusicPlayer](https://github.com/Ba
 For detailed information, please execute the main program directly.
 
 ![image info](./Image/UI.jpg)
-
 
 # Json Config Schema
 ```json

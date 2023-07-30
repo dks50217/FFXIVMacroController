@@ -5,6 +5,7 @@ This is a script tool rewritten based on [BardMusicPlayer](https://github.com/Ba
 
 ![demo](./Image/demo.gif)
 
+allow you run scripts in the background window, so you can watch YouTube or do other stuff on the same computer at the same time.
 
 # How To Use
 
@@ -14,7 +15,6 @@ This is a script tool rewritten based on [BardMusicPlayer](https://github.com/Ba
 For detailed information, please execute the main program directly.
 
 ![image info](./Image/UI.jpg)
-
 
 # Json Config Schema
 ```json

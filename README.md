@@ -3,6 +3,9 @@ FFXIVMacroController
 
 This is a script tool rewritten based on [BardMusicPlayer](https://github.com/BardMusicPlayer/BardMusicPlayer)
 
+![demo](./Image/demo.gif)
+
+
 # How To Use
 
 - If the selected type is [Text], the message will be sent to the game dialogue box.

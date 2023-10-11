@@ -114,11 +114,13 @@ namespace FFXIVMacroController.Helper
 
         public static void RunMouseClick(nint targetProcessId, int x, int y)
         {
-            var pointPtr = MakeLParam(x, y);
-            //SendMessage(targetProcessId, WM_MOUSEMOVE, 0, MakeLParam(X, Y));
-            //SendMessage(targetProcessId, WM_ACTIVATE, 1, 0);
-            SendMessage(targetProcessId, WM_LBUTTONDOWN, 1, pointPtr);
-            SendMessage(targetProcessId, WM_LBUTTONUP,0, pointPtr);
+            //var pointPtr = MakeLParam(x, y);
+
+            //SendMessage(targetProcessId, WM_LBUTTONDOWN, 1, pointPtr);
+
+            //Thread.Sleep(1000);
+
+            //SendMessage(targetProcessId, WM_LBUTTONUP,0, pointPtr);
         }
 
         static void SetCursorPositionByProcess(int processId, int x, int y)

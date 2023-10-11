@@ -8,7 +8,7 @@ namespace FFXIVMacroController.Model
 {
     public class CategoryModel
     {
-        public int id { get; set; }
+        public string id { get; set; }
         public string name { get; set; }
         public string category { get; set; }
         public int repeat { get; set; }

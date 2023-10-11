@@ -11,8 +11,7 @@ using FFXIVMacroController.Model;
 using System.Text.Json;
 using FFXIVMacroController.Quotidian.Enums;
 using System.Reflection.Emit;
-using Newtonsoft.Json.Linq;
-using System.ComponentModel;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +33,8 @@ app.UseFileServer(new FileServerOptions
         ContentTypeProvider = provider
     }
 });
+
+CancellationTokenSource cancellationTokenSource = null;
 
 BmpPigeonhole.Initialize(AppContext.BaseDirectory + @"\Grunt.ApiTest.json");
 
@@ -103,9 +104,13 @@ app.MapPost("/Start", async (CategoryModel model) =>
         return "";
     }
 
-    await EventHelper.SendInput(game, model.macroList);
+    cancellationTokenSource = new CancellationTokenSource();
+    CancellationToken cancellationToken = cancellationTokenSource.Token;
+    await EventHelper.SendInput_Token(game, model.macroList, cancellationToken);
 
-    return "";
+    bool isStarted = !BmpGrunt.Instance.Started || !BmpSeer.Instance.Started;
+
+    return isStarted ? "1" : "0";
 });
 
 app.MapPost("/Stop", async () =>
@@ -114,12 +119,13 @@ app.MapPost("/Stop", async () =>
 
     BmpSeer.Instance.Stop();
 
-    while (BmpGrunt.Instance.Started || BmpSeer.Instance.Started)
+    if (cancellationTokenSource != null)
     {
-        await Task.Delay(20);
+        cancellationTokenSource.Cancel();
+        return true;
     }
 
-    return true;
+    return false;
 });
 
 app.MapPost("/Save", async (MacroRootModel model) =>

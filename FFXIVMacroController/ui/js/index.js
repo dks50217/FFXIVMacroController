@@ -7,6 +7,7 @@
             isStart: false,
             saveLoader: false,
             fullscreenLoading: false,
+            isEditTitle: false,
             form: {
                 macroList: null,
                 rootData : null,
@@ -15,9 +16,9 @@
                 formLabelWidth: '120px'
             }, 
             tableColumns: [
-                { label: '按鍵', prop: 'keyNumber', width: 130, type: 'select', options: 'keyOptions', optionLabel: 'label', optionValue: 'value' },
-                { label: '定位', prop: 'locate', btnType: 'primary', icon: 'el-icon-position', width: 50, type: 'label', type: 'button', event: (item, scope) => { this.handleLocate(item, scope) } },
-                { label: '座標', prop: 'coordinate', width: 130, type: 'label', width: 100 },
+                { label: '按鍵', prop: 'keyNumber', width: 230, type: 'select', options: 'keyOptions', optionLabel: 'label', optionValue: 'value' },
+                //{ label: '定位', prop: 'locate', btnType: 'primary', icon: 'el-icon-position', width: 50, type: 'label', type: 'button', event: (item, scope) => { this.handleLocate(item, scope) } },
+                //{ label: '座標', prop: 'coordinate', width: 130, type: 'label', width: 100 },
                 { label: '類型', prop: 'type', width: 130, type: 'select', options: 'typeOptions', optionLabel: 'label', optionValue: 'value' },
                 { label: '執行後暫停', prop: 'sleep', width: 130, type: 'input' },
                 { label: '文字', prop: 'inputText', width: 300, type: 'textarea' },
@@ -30,6 +31,10 @@
             },
             infoData: {
                 gamePath : ''
+            },
+            dialogData: {
+                name: '',
+                cloneid: ''
             }
         }
     },
@@ -66,13 +71,14 @@
         },
         onStop() {
             let _self = this;
-            _self.isStart = true;
-            _self.isInit = false;
+            //_self.isStart = true;
+            //_self.isInit = false;
 
             vm.callAPI("../Stop").load.then(function (response) {
                 console.log('result Stop', response);
-                _self.loading = false;
-                _self.isInit = true;
+                //_self.loading = false;
+                //_self.isInit = true;
+                //_self.isStart = false;
             });
         },
         onInit() {
@@ -128,6 +134,8 @@
         addCategory() {
             let _self = this;
             _self.form.dialogFormVisible = true;
+            _self.dialogData.name = "";
+            _self.dialogData.cloneid = "";
         },
         handleLocate(item, scope) {
             let _self = this;
@@ -155,6 +163,10 @@
         onSave() {
             let _self = this;
             _self.saveLoader = true;
+
+            console.log('save',_self.form.rootData);
+
+
             _self.callAPI("../Save", _self.form.rootData).load.then(function (response) {
                 _self.saveLoader = false;
 
@@ -165,6 +177,25 @@
                     _self.$message.error('儲存失敗');
                 }
             });
+        },
+        onDialogClose() {
+            let _self = this;
+            _self.form.dialogFormVisible = false
+            let refItem = _self.form.rootData.categoryList.find(c => c.id == _self.dialogData.cloneid);
+            const cloneItem = Object.assign({}, refItem);
+            cloneItem.id = _self.genUUID();
+            cloneItem.name = _self.dialogData.name;
+            _self.form.rootData.categoryList.push(cloneItem);
+        },
+        genUUID() {
+            return Array
+                .from(Array(16))
+                .map(e => Math.floor(Math.random() * 255)
+                    .toString(16)
+                    .padStart(2, "0"))
+                .join('')
+                .match(/.{1,4}/g)
+                .join('-');
         }
     },
     mounted() {

@@ -1,8 +1,8 @@
 {
-  "rootID": 1,
+  "rootID": "6f6e556d-a5e3-4199-a3e8-e5eba5da9c73",
   "categoryList": [
     {
-      "id": 1,
+      "id": "6f6e556d-a5e3-4199-a3e8-e5eba5da9c73",
       "name": "腳本A",
       "category": "action",
       "repeat": 1,
@@ -26,7 +26,7 @@
       ]
     },
     {
-      "id": 2,
+      "id": "7d05bf82-f880-4634-9975-8d56ae4db5b1",
       "name": "腳本B",
       "repeat": 2,
       "category": "text",

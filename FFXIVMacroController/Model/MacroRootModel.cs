@@ -10,6 +10,6 @@ namespace FFXIVMacroController.Model
     {
         //public List<MacroModel> macroList { get; set; }
         public List<CategoryModel> categoryList { get; set; }
-        public int rootID { get; set; }
+        public string rootID { get; set; }
     }
 }

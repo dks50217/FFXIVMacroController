@@ -24,6 +24,7 @@ namespace FFXIVMacroController.Helper
         [DllImport("user32.dll")]
         static extern IntPtr GetForegroundWindow();
 
+
         [DllImport("user32.dll")]
         public static extern bool GetCursorPos(out POINT lpPoint);
 
@@ -93,27 +94,30 @@ namespace FFXIVMacroController.Helper
 
             SetCursorPos(clientPoint.X, clientPoint.Y);
 
-            SetForegroundWindow(wndHandle);
+            //SetForegroundWindow(wndHandle);
 
-            // 切换窗口后，等待窗口切换完成
-            while (GetForegroundWindow() != wndHandle)
-            {
-                Thread.Sleep(20);
-            }
+            //// 切換窗口後，等待窗口切換完成
+            //while (GetForegroundWindow() != wndHandle)
+            //{
+            //    Thread.Sleep(20);
+            //}
+
+            SwitchWindow(wndHandle);
 
             var pointPtr = MakeLParam(x, y);
 
-            Thread.Sleep(300);
+            Thread.Sleep(100);
 
             SendMessage(wndHandle, WM_LBUTTONDOWN, 1, pointPtr);
 
-            Thread.Sleep(300);
+            Thread.Sleep(100);
 
             SendMessage(wndHandle, WM_LBUTTONUP, 0, pointPtr);
 
-            Thread.Sleep(300);
+            Thread.Sleep(100);
 
-            SetForegroundWindow(oldHandle);
+            //SetForegroundWindow(oldHandle);
+            SwitchWindow(oldHandle);
 
             SetCursorPos(lpPoint.X, lpPoint.Y);
         }
@@ -123,10 +127,36 @@ namespace FFXIVMacroController.Helper
 
             SendMessage(wndHandle, WM_LBUTTONUP, 0, pointPtr);
 
-
-
-
             return true;
+        }
+
+
+
+        [DllImport("user32.dll")]
+        public static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+        [DllImport("kernel32.dll")]
+        public static extern uint GetCurrentThreadId();
+        public static void SwitchWindow(IntPtr windowHandle)
+        {
+            if (GetForegroundWindow() == windowHandle)
+                return;
+
+            IntPtr foregroundWindowHandle = GetForegroundWindow();
+            uint currentThreadId = GetCurrentThreadId();
+            uint temp;
+            uint foregroundThreadId = GetWindowThreadProcessId(foregroundWindowHandle, out temp);
+            AttachThreadInput(currentThreadId, foregroundThreadId, true);
+            SetForegroundWindow(windowHandle);
+            AttachThreadInput(currentThreadId, foregroundThreadId, false);
+
+            while (GetForegroundWindow() != windowHandle)
+            {
+                Thread.Sleep(20);
+            }
         }
     }
 }

@@ -12,9 +12,11 @@ using FFXIVMacroController.Model;
 using FFXIVMacroController.Seer.Events;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components.Forms;
-using static FFXIVMacroController.Helper.ClickOnPointTool;
+//using static FFXIVMacroController.Helper.ClickOnPointTool;
 using System.Text.RegularExpressions;
 using System.Drawing;
+using Newtonsoft.Json.Linq;
+using System.Threading;
 
 namespace FFXIVMacroController.Helper
 {
@@ -35,6 +37,12 @@ namespace FFXIVMacroController.Helper
 
                 Console.WriteLine($"Key: {item.key}");
 
+                if (!BmpSeer.Instance.Started || !BmpGrunt.Instance.Started)
+                {
+                    Console.WriteLine($"已經暫停!");
+                    break;
+                }
+
                 var s = TimeSpan.FromSeconds(item.sleep).TotalMilliseconds;
                 item.sleep = Convert.ToInt32(s);
 
@@ -43,9 +51,9 @@ namespace FFXIVMacroController.Helper
                     case Types.button:
                         if (game != null && !await game.SendKeyArray(item.key)) Console.WriteLine("Failed to call game pid " + game.Pid + " to input keys :(");
                         break;
-                    case Types.mouse:
-                        ClickOnPointTool.ClickOnPoint(game.Process.MainWindowHandle, item.coordinateX, item.coordinateY);
-                        break;
+                    //case Types.mouse:
+                    //    ClickOnPointTool.ClickOnPoint(game.Process.MainWindowHandle, item.coordinateX, item.coordinateY);
+                    //    break;
                     case Types.text:
 
                         string[] lines = item.inputText.Split(
@@ -63,16 +71,71 @@ namespace FFXIVMacroController.Helper
                 }
 
                 await Task.Delay(item.sleep);
-            }  
+            }
         }
 
+        public static async Task SendInput_Token(Game game, List<MacroModel> macroList, CancellationToken cancellationToken)
+        {
+            Console.WriteLine("Trying to doot on game pid " + game.Pid + ".");
+
+            bool isStop = !BmpSeer.Instance.Started || !BmpGrunt.Instance.Started;
+
+            foreach (var item in macroList)
+            {
+                item.key = (Keys)item.keyNumber;
+
+                Console.WriteLine($"Key: {item.key}");
+                var s = TimeSpan.FromSeconds(item.sleep).TotalMilliseconds;
+                item.sleep = Convert.ToInt32(s);
+
+                var delayTask = Task.Delay(item.sleep, cancellationToken);
+
+                switch (item.type)
+                {
+                    case Types.button:
+                        if (game != null && !await game.SendKeyArray(item.key))
+                        {
+                            Console.WriteLine("Failed to call game pid " + game.Pid + " to input keys :(");
+                        }
+                        break;
+                    case Types.text:
+                        string[] lines = item.inputText.Split(
+                            new string[] { "\r\n", "\r", "\n" },
+                            StringSplitOptions.None
+                        );
+
+                        foreach (string line in lines)
+                        {
+                            await Task.WhenAny(delayTask, game.SendLyricLine(line));
+
+                            if (cancellationToken.IsCancellationRequested && isStop)
+                            {
+                                Console.WriteLine($"已經立即暫停!");
+                                return; // Exit the method if cancellation is requested
+                            }
+
+                            await Task.Delay(item.sleep);
+                        }
+
+                        break;
+                }
+
+                await Task.WhenAny(delayTask);
+
+                if (cancellationToken.IsCancellationRequested && isStop)
+                {
+                    Console.WriteLine($"已經立即暫停!");
+                    return;
+                }
+            }
+        }
 
         public static MacroRootModel ConvertJsonToList(string jsonText)
         {
             JsonDocument jsonDocument = JsonDocument.Parse(jsonText);
             MacroRootModel rootModel = new MacroRootModel();
 
-            rootModel.rootID =  jsonDocument.RootElement.GetProperty("rootID").GetInt16();
+            rootModel.rootID =  jsonDocument.RootElement.GetProperty("rootID").GetString();
             rootModel.categoryList = new List<CategoryModel>();
             var categoryList = jsonDocument.RootElement.GetProperty("categoryList");
 
@@ -80,7 +143,7 @@ namespace FFXIVMacroController.Helper
             {
                 CategoryModel categoryModel = new CategoryModel();
 
-                categoryModel.id = item.GetProperty("id").GetInt16();
+                categoryModel.id = item.GetProperty("id").GetString();
                 categoryModel.name = item.GetProperty("name").GetString();
                 categoryModel.category  = item.GetProperty("category").GetString();
                 categoryModel.repeat = item.GetProperty("repeat").GetInt16();

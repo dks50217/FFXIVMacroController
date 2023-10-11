@@ -224,7 +224,7 @@ internal class SharlayanReaderBackend : IReaderBackend
         GC.SuppressFinalize(this);
     }
 
-    private void GetPlayerInfo(CancellationToken cancellationToken)
+    public void GetPlayerInfo(CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
             return;

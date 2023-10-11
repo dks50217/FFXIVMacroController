@@ -14,7 +14,15 @@
             <el-col :span="24">
                 <el-row :gutter="10">
                     <el-tabs v-if="form.rootData" type="border-card" v-model="form.rootData.rootID" @tab-click="handleTabClick">
-                        <el-tab-pane v-for="item in form.rootData.categoryList" :label="item.name" :name="item.id">
+                        <el-tab-pane v-for="item in form.rootData.categoryList" :name="item.id">
+                           
+                            <span slot="label">
+                                <label @dblclick="isEditTitle = true" v-show="!isEditTitle"> {{item.name}} </label>
+                                <el-input v-if="isEditTitle" v-model="item.name" v-focus="true"
+                                       v-on:blur="isEditTitle = false; $emit('update')"
+                                       @keyup.enter="isEditTitle = false; $emit('update')" size="mini"></el-input>
+                            </span>
+                     
                             <el-col :span="12">
                                 <el-table-draggable>
                                     <el-table :data="item.macroList"
@@ -55,7 +63,7 @@
                                         <el-form-item label="動作">
                                             <el-button type="success" icon="el-icon-plus" circle @click="handleAdd(item.macroList)" :disabled="isStart"></el-button>
                                             <el-button type="primary" icon="el-icon-video-play" :disabled="!isInit" :loading="loading" circle @click="onStart"></el-button>
-                                            <el-button type="danger" icon="el-icon-video-pause" :disabled="!isStart" circle @click="onStop"></el-button>
+                                            <el-button type="danger" icon="el-icon-close" :disabled="!isStart" circle @click="onStop"></el-button>
                                             <el-button type="success" icon="el-icon-finished" :loading="saveLoader" circle @click="onSave"></el-button>
                                         </el-form-item>
                                     </el-form>
@@ -98,13 +106,22 @@
 
                 <el-dialog title="待新增" :visible.sync="form.dialogFormVisible">
                     <el-form :model="form">
-                        <el-form-item label="測試" :label-width="form.formLabelWidth">
-                            
+                        <el-form-item label="腳本名稱" :label-width="form.formLabelWidth">
+                            <el-input v-model="dialogData.name" size="small"></el-input>
+                        </el-form-item>
+                        <el-form-item label="複製" :label-width="form.formLabelWidth">
+                            <el-select v-model="dialogData.cloneid" placeholder="選擇複製的腳本" size="small">
+                                <el-option v-for="item in form.rootData.categoryList"
+                                           :key="item.id"
+                                           :label="item.name"
+                                           :value="item.id">
+                                </el-option>
+                            </el-select>
                         </el-form-item>
                     </el-form>
                     <div slot="footer" class="dialog-footer">
                         <el-button @click="form.dialogFormVisible = false">取消</el-button>
-                        <el-button type="primary" @click="form.dialogFormVisible = false">確定</el-button>
+                        <el-button type="primary" @click="onDialogClose">確定</el-button>
                     </div>
                 </el-dialog>
 

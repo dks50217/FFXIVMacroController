@@ -170,5 +170,4 @@ app.MapPost("/LocateMouse", async () =>
     return JsonSerializer.Serialize(resultObj);
 });
 
-
 app.RunAsDesktopTool();

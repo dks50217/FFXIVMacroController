@@ -13,6 +13,7 @@
         <el-row :gutter="20">
             <el-col :span="24">
                 <el-row :gutter="10">
+
                     <el-tabs v-if="form.rootData" type="border-card" v-model="form.rootData.rootID" @tab-click="handleTabClick">
                         <el-tab-pane v-for="item in form.rootData.categoryList" :name="item.id">
                            
@@ -22,39 +23,47 @@
                                        v-on:blur="isEditTitle = false; $emit('update')"
                                        @keyup.enter="isEditTitle = false; $emit('update')" size="mini"></el-input>
                             </span>
-                     
+
+
                             <el-col :span="12">
-                                <el-table-draggable>
-                                    <el-table :data="item.macroList"
-                                              v-loading="!isInit"
-                                              size="small"
-                                              border
-                                              style="width: 100%">
-                                        <el-table-column v-for="column in tableColumns"
-                                                         :fixed="column.fixed"
-                                                         :label="column.label"
-                                                         :width="column.width">
-                                            <template slot-scope="scope">
-                                                <el-input v-if="column.type == 'input'" size="mini" v-model="scope.row[column.prop]"></el-input>
-                                                <el-button v-else-if="column.type == 'button'" :type="column.btnType" :disabled="(scope.row.type == 1 || scope.row.type == 3) && column.prop == 'locate'" :icon="column.icon" circle size="mini" v-on:click="column.event(item,scope)"></el-button>
-                                                <el-select v-else-if="column.type == 'select'" size="mini" :disabled="(scope.row.type == 2 || scope.row.type == 3) && column.options == 'keyOptions'" filterable v-model="scope.row[column.prop]" placeholder="">
-                                                    <el-option v-for="option in Options[column.options]"
-                                                               :key="option[column.optionValue]"
-                                                               :label="option[column.optionLabel]"
-                                                               :value="option[column.optionValue]">
-                                                    </el-option>
-                                                </el-select>
-                                                <el-input v-else-if="column.type == 'textarea'" size="mini" type="textarea"
-                                                          :disabled="(scope.row.type == 1 || scope.row.type == 2)"
-                                                          :rows="2"
-                                                          placeholder="請輸入傳送到遊戲內文字"
-                                                          v-model="scope.row[column.prop]">
-                                                </el-input>
-                                                <span v-else>{{scope.row[column.prop]}}</span>
-                                            </template>
-                                        </el-table-column>
-                                    </el-table>
-                                </el-table-draggable>
+
+                                <el-row>
+                                    <el-progress :percentage="simulate.percentage"></el-progress>
+                                </el-row>
+
+                                <el-row>
+                                    <el-table-draggable>
+                                        <el-table :data="item.macroList"
+                                                  v-loading="!isInit"
+                                                  size="small"
+                                                  border
+                                                  style="width: 100%">
+                                            <el-table-column v-for="column in tableColumns"
+                                                             :fixed="column.fixed"
+                                                             :label="column.label"
+                                                             :width="column.width">
+                                                <template slot-scope="scope">
+                                                    <el-input v-if="column.type == 'input'" size="mini" v-model="scope.row[column.prop]"></el-input>
+                                                    <el-button v-else-if="column.type == 'button'" :type="column.btnType" :disabled="(scope.row.type == 1 || scope.row.type == 3) && column.prop == 'locate'" :icon="column.icon" circle size="mini" v-on:click="column.event(item,scope)"></el-button>
+                                                    <el-select v-else-if="column.type == 'select'" size="mini" :disabled="(scope.row.type == 2 || scope.row.type == 3) && column.options == 'keyOptions'" filterable v-model="scope.row[column.prop]" placeholder="">
+                                                        <el-option v-for="option in Options[column.options]"
+                                                                   :key="option[column.optionValue]"
+                                                                   :label="option[column.optionLabel]"
+                                                                   :value="option[column.optionValue]">
+                                                        </el-option>
+                                                    </el-select>
+                                                    <el-input v-else-if="column.type == 'textarea'" size="mini" type="textarea"
+                                                              :disabled="(scope.row.type == 1 || scope.row.type == 2)"
+                                                              :rows="2"
+                                                              placeholder="請輸入傳送到遊戲內文字"
+                                                              v-model="scope.row[column.prop]">
+                                                    </el-input>
+                                                    <span v-else>{{scope.row[column.prop]}}</span>
+                                                </template>
+                                            </el-table-column>
+                                        </el-table>
+                                    </el-table-draggable>
+                                </el-row>
                             </el-col>
 
                             <el-col :span="12">

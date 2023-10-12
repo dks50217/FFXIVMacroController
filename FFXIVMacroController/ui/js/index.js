@@ -35,6 +35,14 @@
             dialogData: {
                 name: '',
                 cloneid: ''
+            },
+            simulate: {
+                jobList: null,
+                totalJobs: null,
+                completedJobs: 0,
+                percentage: 0,
+                stop: false,
+                timeoutId : null
             }
         }
     },
@@ -63,16 +71,41 @@
 
             console.log(apiObj, repeat);
 
+            _self.simulate.jobList = apiObj.macroList;
+            _self.simulate.totalJobs = apiObj.macroList.length;
+            _self.simulate.completedJobs = 0;
+            _self.simulate.percentage = 0;
+            _self.simulate.stop = false;
+            _self.simulateJobCompletion();
+
             vm.callAPI("../Start", apiObj).load.then(function (response) {
                 console.log('result', response);
                 _self.loading = false;
                 _self.isStart = false;
             });
         },
+        simulateJobCompletion() {
+            let _self = this;
+            if (_self.simulate.completedJobs < _self.simulate.totalJobs) {
+                const job = _self.simulate.jobList[_self.simulate.completedJobs];
+                _self.simulate.timeoutId = setTimeout(() => {
+                    _self.simulate.completedJobs++;
+                    _self.simulate.percentage = Math.round((_self.simulate.completedJobs / _self.simulate.totalJobs) * 100);
+                    _self.simulateJobCompletion();
+                }, job.sleep * 1000);
+            }
+        },
         onStop() {
             let _self = this;
             //_self.isStart = true;
             //_self.isInit = false;
+
+            _self.simulate.jobList = null;
+            _self.simulate.totalJobs = 0;
+            _self.simulate.completedJobs = 0;
+            _self.simulate.percentage = 0;
+            _self.simulate.stop = true;
+            clearTimeout(_self.simulate.timeoutId);
 
             vm.callAPI("../Stop").load.then(function (response) {
                 console.log('result Stop', response);

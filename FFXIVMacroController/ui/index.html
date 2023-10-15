@@ -82,6 +82,28 @@
                                         <el-form-item label="重複次數">
                                             <el-input-number size="small" v-model="form.repeat" placeholder="重複次數"></el-input-number>
                                         </el-form-item>
+                                        <el-form-item label="穿插">
+                                            <el-row :gutter="10">
+                                                <el-col :span="3">
+                                                    <el-switch v-model="form.isInsert"
+                                                               active-color="#13ce66"
+                                                               inactive-color="#ff4949">
+                                                    </el-switch>
+                                                </el-col>
+                                                <el-col :span="12">
+                                                    <el-select v-model="form.insertMacro" placeholder="選擇穿插的腳本" size="small" :disabled="!form.isInsert">
+                                                        <el-option v-for="item in form.rootData.categoryList"
+                                                                   :key="item.id"
+                                                                   :label="item.name"
+                                                                   :value="item.id">
+                                                        </el-option>
+                                                    </el-select>
+                                                </el-col>
+                                                <el-col :span="5">
+                                                    <el-input v-model.number="form.insertNumber" :disabled="!form.isInsert" size="small" type="number" placeholder="每幾次後穿插"></el-input>
+                                                </el-col>
+                                            </el-row>
+                                        </el-form-item>
                                     </el-form>
                                 </el-row>
                             </el-col>
@@ -100,9 +122,9 @@
                 </el-row>
 
 
-                <!--<el-row :gutter="20">
+                <el-row :gutter="20">
         <raw-displayer title="macroList" :value="form.macroList"></raw-displayer>
-    </el-row>-->
+    </el-row>
                 <el-row :gutter="20" style="margin:10px">
                     <el-col :span="12">
                         <el-input placeholder="路徑" v-model="infoData.gamePath" disabled>

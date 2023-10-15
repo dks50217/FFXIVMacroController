@@ -13,7 +13,10 @@
                 rootData : null,
                 repeat: 1,
                 dialogFormVisible: false,
-                formLabelWidth: '120px'
+                formLabelWidth: '120px',
+                isInsert: false,
+                insertMacro: null,
+                insertNumber: 1
             }, 
             tableColumns: [
                 { label: '按鍵', prop: 'keyNumber', width: 230, type: 'select', options: 'keyOptions', optionLabel: 'label', optionValue: 'value' },
@@ -59,30 +62,87 @@
     methods: {
         onStart(){
             let _self = this;
-            _self.isStart = true;
-            _self.loading = true;
-
+            
             let param = _self.form.rootData.categoryList.find(c => c.id == _self.form.rootData.rootID);
-            let repeat = (array, numberOfTimes) => Array(numberOfTimes).fill(array).reduce((a, b) => [...a, ...b], [])
 
             let apiObj = Object.assign({}, param);
 
-            apiObj.macroList = repeat(param.macroList, _self.form.repeat);
+            if (_self.form.isInsert) {
 
-            console.log(apiObj, repeat);
+                if (!_self.form.insertMacro) {
+                    _self.$message({
+                        showClose: true,
+                        message: '穿插要設定穿插的腳本',
+                        type: 'error'
+                    });
+                    return;
+                }
 
-            _self.simulate.jobList = apiObj.macroList;
-            _self.simulate.totalJobs = apiObj.macroList.length;
-            _self.simulate.completedJobs = 0;
-            _self.simulate.percentage = 0;
-            _self.simulate.stop = false;
-            _self.simulateJobCompletion();
+                let insertArray = _self.form.rootData.categoryList.find(c => c.id == _self.form.insertMacro).macroList;
+                let insertNumber = _self.form.insertNumber + 1;
+
+                if (insertNumber > _self.form.repeat) {
+                    _self.$message({
+                        showClose: true,
+                        message: '穿插不允許大於或相同於重複次數',
+                        type: 'error'
+                    });
+                    return;
+                }
+
+                apiObj.macroList = _self.repeatArrayWithInsertion(param.macroList, _self.form.repeat, insertArray, insertNumber);
+            }
+            else {
+                apiObj.macroList = _self.repeat(param.macroList, _self.form.repeat);
+            }
+                
+            console.log('apiObj', apiObj);
+
+            _self.isStart = true;
+            _self.loading = true;
+            _self.initSimulater(apiObj, true);
 
             vm.callAPI("../Start", apiObj).load.then(function (response) {
                 console.log('result', response);
                 _self.loading = false;
                 _self.isStart = false;
+                _self.initSimulater(null, false);
             });
+        },
+        repeat(array, numberOfTimes) {
+            return Array(numberOfTimes)
+                .fill(array)
+                .reduce((a, b) => [...a, ...b], []);
+        },
+        repeatArrayWithInsertion(array, numberOfTimes, arrayToInsert, insertAtRepeat) {
+            return Array(numberOfTimes)
+                .fill(array)
+                .reduce((a, b, index) => {
+                    if (index === insertAtRepeat - 1) {
+                        a = a.concat(arrayToInsert);
+                    }
+                    return a.concat(b);
+                }, []);
+        },
+        initSimulater(apiObj, isStart) {
+            let _self = this;
+
+            if (isStart) {
+                _self.simulate.jobList = apiObj.macroList;
+                _self.simulate.totalJobs = apiObj.macroList.length;
+                _self.simulate.completedJobs = 0;
+                _self.simulate.percentage = 0;
+                _self.simulate.stop = false;
+                _self.simulateJobCompletion();
+            }
+            else {
+                _self.simulate.jobList = null;
+                _self.simulate.totalJobs = 0;
+                _self.simulate.completedJobs = 0;
+                _self.simulate.percentage = 0;
+                _self.simulate.stop = true;
+                clearTimeout(_self.simulate.timeoutId);
+            }
         },
         simulateJobCompletion() {
             let _self = this;
@@ -97,21 +157,11 @@
         },
         onStop() {
             let _self = this;
-            //_self.isStart = true;
-            //_self.isInit = false;
 
-            _self.simulate.jobList = null;
-            _self.simulate.totalJobs = 0;
-            _self.simulate.completedJobs = 0;
-            _self.simulate.percentage = 0;
-            _self.simulate.stop = true;
-            clearTimeout(_self.simulate.timeoutId);
+            _self.initSimulater(null, false);
 
             vm.callAPI("../Stop").load.then(function (response) {
                 console.log('result Stop', response);
-                //_self.loading = false;
-                //_self.isInit = true;
-                //_self.isStart = false;
             });
         },
         onInit() {

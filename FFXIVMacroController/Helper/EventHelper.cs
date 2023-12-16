@@ -12,7 +12,6 @@ using FFXIVMacroController.Model;
 using FFXIVMacroController.Seer.Events;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components.Forms;
-//using static FFXIVMacroController.Helper.ClickOnPointTool;
 using System.Text.RegularExpressions;
 using System.Drawing;
 using Newtonsoft.Json.Linq;
@@ -22,58 +21,6 @@ namespace FFXIVMacroController.Helper
 {
     public class EventHelper
     {
-        /// <summary>
-        /// 發送遊戲事件
-        /// </summary>
-        /// <param name="game"></param>
-        /// <param name="jsonText"></param>
-        public static async Task SendInput(Game game, List<MacroModel> macroList)
-        {
-            Console.WriteLine("Trying to doot on game pid " + game.Pid + ".");
-
-            foreach (var item in macroList)
-            {
-                item.key = (Keys)item.keyNumber;
-
-                Console.WriteLine($"Key: {item.key}");
-
-                if (!BmpSeer.Instance.Started || !BmpGrunt.Instance.Started)
-                {
-                    Console.WriteLine($"已經暫停!");
-                    break;
-                }
-
-                var s = TimeSpan.FromSeconds(item.sleep).TotalMilliseconds;
-                item.sleep = Convert.ToInt32(s);
-
-                switch (item.type)
-                {
-                    case Types.button:
-                        if (game != null && !await game.SendKeyArray(item.key)) Console.WriteLine("Failed to call game pid " + game.Pid + " to input keys :(");
-                        break;
-                    //case Types.mouse:
-                    //    ClickOnPointTool.ClickOnPoint(game.Process.MainWindowHandle, item.coordinateX, item.coordinateY);
-                    //    break;
-                    case Types.text:
-
-                        string[] lines = item.inputText.Split(
-                            new string[] { "\r\n", "\r", "\n" },
-                            StringSplitOptions.None
-                        );
-
-                        foreach (string line in lines)
-                        {
-                            await game.SendLyricLine(line);
-                            await Task.Delay(item.sleep);
-                        }
-
-                        break;
-                }
-
-                await Task.Delay(item.sleep);
-            }
-        }
-
         public static async Task SendInput_Token(Game game, List<MacroModel> macroList, CancellationToken cancellationToken)
         {
             Console.WriteLine("Trying to doot on game pid " + game.Pid + ".");

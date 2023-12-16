@@ -66,7 +66,7 @@ app.MapPost("/Init", async () =>
     }).Distinct();
 
 
-    await Task.Delay(1000);
+    await Task.Delay(3000);
 
     var game = BmpSeer.Instance.Games.Values.FirstOrDefault();
 
@@ -75,7 +75,8 @@ app.MapPost("/Init", async () =>
         rootData = sampleData,
         keyOptions = keyList,
         typeOptions = typeList,
-        gamePath = game?.GamePath
+        gamePath = game?.GamePath,
+        playerName = game?.PlayerName
     };
 
     return JsonSerializer.Serialize(resultObj);

@@ -33,8 +33,13 @@ internal partial class Reader
             var isCurrentlyBard = source[MemoryHandler.Structures.CurrentPlayer.JobID] == 0x17;
             var isLoggedIn = source[MemoryHandler.Structures.CurrentPlayer.JobID] != 0x00;
 
-            if (ActorIdTools.RangeOkay(actorId) && !string.IsNullOrEmpty(playerName))
+            // 20231216 no actor id check
+            if (!string.IsNullOrEmpty(playerName)){
                 result = new KeyValuePair<uint, (string, bool, bool)>(actorId, (playerName, isCurrentlyBard, isLoggedIn));
+            }
+
+            //if (ActorIdTools.RangeOkay(actorId) && !string.IsNullOrEmpty(playerName))
+            //    result = new KeyValuePair<uint, (string, bool, bool)>(actorId, (playerName, isCurrentlyBard, isLoggedIn));
         }
         catch (Exception ex)
         {

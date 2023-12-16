@@ -10,18 +10,20 @@
 </head>
 <body>
     <div id="app">
-        <el-row :gutter="20">
+        <el-skeleton :rows="10" animated :loading="!isInit"></el-skeleton>
+
+        <el-row :gutter="20" v-if="isInit">
             <el-col :span="24">
                 <el-row :gutter="10">
 
                     <el-tabs v-if="form.rootData" type="border-card" v-model="form.rootData.rootID" @tab-click="handleTabClick">
                         <el-tab-pane v-for="item in form.rootData.categoryList" :name="item.id">
-                           
+
                             <span slot="label">
                                 <label @dblclick="isEditTitle = true" v-show="!isEditTitle"> {{item.name}} </label>
                                 <el-input v-if="isEditTitle" v-model="item.name" v-focus="true"
-                                       v-on:blur="isEditTitle = false; $emit('update')"
-                                       @keyup.enter="isEditTitle = false; $emit('update')" size="mini"></el-input>
+                                          v-on:blur="isEditTitle = false; $emit('update')"
+                                          @keyup.enter="isEditTitle = false; $emit('update')" size="mini"></el-input>
                             </span>
 
 
@@ -35,6 +37,7 @@
                                     <el-table-draggable>
                                         <el-table :data="item.macroList"
                                                   v-loading="!isInit"
+                                                  :row-style="rowStyle"
                                                   size="small"
                                                   border
                                                   style="width: 100%">
@@ -123,13 +126,18 @@
 
 
                 <!--<el-row :gutter="20">
-        <raw-displayer title="macroList" :value="form.macroList"></raw-displayer>
-    </el-row>-->
+                <raw-displayer title="macroList" :value="form.macroList"></raw-displayer>
+            </el-row>-->
                 <el-row :gutter="20" style="margin:10px">
                     <el-col :span="12">
                         <el-input placeholder="路徑" v-model="infoData.gamePath" disabled>
                             <template slot="prepend">
                                 路徑
+                            </template>
+                        </el-input>
+                        <el-input placeholder="路徑" v-model="infoData.playerName" disabled>
+                            <template slot="prepend">
+                                玩家
                             </template>
                         </el-input>
                     </el-col>
@@ -156,7 +164,7 @@
                     </div>
                 </el-dialog>
 
-            </el-row>
+        </el-row>
     </div>
 
     <script src="./js/mixin.js" type="text/javascript"></script>

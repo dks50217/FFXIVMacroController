@@ -33,7 +33,8 @@
                 typeOptions: []
             },
             infoData: {
-                gamePath : ''
+                gamePath: '',
+                playerName: ''
             },
             dialogData: {
                 name: '',
@@ -60,7 +61,7 @@
 
     },
     methods: {
-        onStart(){
+        onStart() {
             let _self = this;
             
             let param = _self.form.rootData.categoryList.find(c => c.id == _self.form.rootData.rootID);
@@ -171,6 +172,7 @@
                 _self.Options.keyOptions = response.keyOptions;
                 _self.Options.typeOptions = response.typeOptions;
                 _self.infoData.gamePath = response.gamePath;
+                _self.infoData.playerName = response.playerName;
                 _self.form.rootData = response.rootData;
                 _self.isInit = true;
 
@@ -279,9 +281,20 @@
                 .join('')
                 .match(/.{1,4}/g)
                 .join('-');
+        },
+        rowStyle({ row, rowIndex }) {
+            //if (row.age > 30) {
+            //    return { background: 'lightcoral' };
+            //}
+
+
+            //return { background: 'red' };
+            console.log(row, rowIndex);
+            return {};
         }
     },
     mounted() {
+        this.$message('初始化中...');
         this.onInit();
     },
     el: "#app"

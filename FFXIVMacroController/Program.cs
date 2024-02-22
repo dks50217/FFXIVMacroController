@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.StaticFiles;
-using Drk.AspNetCore.MinimalApiKit;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +9,9 @@ using FFXIVMacroController.Helper;
 using FFXIVMacroController.Model;
 using System.Text.Json;
 using FFXIVMacroController.Quotidian.Enums;
-using System.Reflection.Emit;
+using ElectronNET.API;
+using ElectronNET.API.Entities;
+using Microsoft.Extensions.Hosting;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +19,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<JsonOptions>(options => {
     options.SerializerOptions.PropertyNamingPolicy = null;
 });
+
+builder.WebHost.UseElectron(args);
+builder.Services.AddElectron();
 
 var app = builder.Build();
 
@@ -171,4 +175,8 @@ app.MapPost("/LocateMouse", async () =>
     return JsonSerializer.Serialize(resultObj);
 });
 
-app.RunAsDesktopTool();
+await app.StartAsync();
+
+await Electron.WindowManager.CreateWindowAsync();
+
+app.WaitForShutdown();

@@ -21,11 +21,15 @@
   <ItemGroup>
     <ProjectReference Include="..\FFXIVMacroController.Grunt\FFXIVMacroController.Grunt.csproj" />
     <PackageReference Include="Drk.AspNetCore.MinimalApiKit" Version="0.9.0" />
+    <PackageReference Include="ElectronNET.API" Version="23.6.2" />
     <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="6.0.7" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="electron.manifest.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

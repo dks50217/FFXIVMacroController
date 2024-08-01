@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
     <ProjectReference Include="..\FFXIVMacroController.Grunt\FFXIVMacroController.Grunt.csproj" />
     <PackageReference Include="Drk.AspNetCore.MinimalApiKit" Version="0.9.0" />
     <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="6.0.7" />

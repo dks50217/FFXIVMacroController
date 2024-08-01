@@ -46,7 +46,9 @@
                 percentage: 0,
                 stop: false,
                 timeoutId : null
-            }
+            },
+            connection: null,
+            chatMessage: ''
         }
     },
     components: {
@@ -279,10 +281,24 @@
                 .join('')
                 .match(/.{1,4}/g)
                 .join('-');
+        },
+        onInitSignalR() {
+            let _self = this;
+
+            _self.connection = new signalR.HubConnectionBuilder()
+                .withUrl("/chatHub")
+                .build();
+
+            connection.on("ReceiveMessage", (user, message) => {
+                _self.chatMessage = `${user}: ${message}`;
+            });
+
+            connection.start().catch(err => console.error(err.toString()));
         }
     },
     mounted() {
         this.onInit();
+        this.onInitSignalR();
     },
     el: "#app"
 })

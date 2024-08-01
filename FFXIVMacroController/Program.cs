@@ -15,6 +15,8 @@ using System.Reflection.Emit;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddSignalR();
+
 builder.Services.Configure<JsonOptions>(options => {
     options.SerializerOptions.PropertyNamingPolicy = null;
 });
@@ -169,5 +171,7 @@ app.MapPost("/LocateMouse", async () =>
 
     return JsonSerializer.Serialize(resultObj);
 });
+
+app.MapHub<ChatHub>("/chatHub");
 
 app.RunAsDesktopTool();

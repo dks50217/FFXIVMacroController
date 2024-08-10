@@ -3,13 +3,13 @@
  * Licensed under the MIT license. See https://github.com/FFXIVAPP/sharlayan/blob/master/LICENSE.md for full license information.
  */
 
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using FFXIVMacroController.Seer.Reader.Backend.Sharlayan.Files.Structures;
 using FFXIVMacroController.Seer.Reader.Backend.Sharlayan.Models;
 using FFXIVMacroController.Seer.Reader.Backend.Sharlayan.Models.Structures;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace FFXIVMacroController.Seer.Reader.Backend.Sharlayan.Utilities;
 

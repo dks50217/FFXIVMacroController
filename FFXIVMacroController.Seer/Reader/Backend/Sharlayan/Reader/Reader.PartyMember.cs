@@ -3,17 +3,16 @@
  * Licensed under the MIT license. See https://github.com/FFXIVAPP/sharlayan/blob/master/LICENSE.md for full license information.
  */
 
-using System;
-using System.Collections.Generic;
 using FFXIVMacroController.Seer.Reader.Backend.Sharlayan.Utilities;
 using FFXIVMacroController.Seer.Utilities;
+using System;
+using System.Collections.Generic;
 
 namespace FFXIVMacroController.Seer.Reader.Backend.Sharlayan.Reader;
 
 internal partial class Reader
 {
-    public bool CanGetPartyMembers() => Scanner.Locations.ContainsKey(Signatures.CharacterMapKey) &&
-                                        Scanner.Locations.ContainsKey(Signatures.PartyMapKey) &&
+    public bool CanGetPartyMembers() => Scanner.Locations.ContainsKey(Signatures.PartyMapKey) &&
                                         Scanner.Locations.ContainsKey(Signatures.PartyCountKey);
 
     public SortedDictionary<uint, string> GetPartyMembers()

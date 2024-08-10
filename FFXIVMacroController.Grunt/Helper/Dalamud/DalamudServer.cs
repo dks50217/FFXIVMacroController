@@ -26,7 +26,7 @@ internal class DalamudServer : IDisposable
     internal DalamudServer()
     {
         _clients                 =  new ConcurrentDictionary<int, string>();
-        _pipe                    =  new PipeServer<string>("BardMusicPlayer-Grunt-Dalamud");
+        _pipe                    =  new PipeServer<string>("FFXIVMacroController-Grunt-Dalamud");
         _pipe.ClientConnected    += OnConnected;
         _pipe.ClientDisconnected += OnDisconnected;
         _pipe.MessageReceived    += OnMessage;

@@ -1,18 +1,18 @@
 ﻿/*
- * Copyright(c) 2021 MoogleTroupe
+ * Copyright(c) 2023 MoogleTroupe
  * Licensed under the GPL v3 license. See https://github.com/BardMusicPlayer/BardMusicPlayer/blob/develop/LICENSE for full license information.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using FFXIVMacroController.Quotidian;
 using FFXIVMacroController.Quotidian.Structs;
 using FFXIVMacroController.Seer.Events;
 using FFXIVMacroController.Seer.Reader.Backend.Sharlayan.Events;
 using FFXIVMacroController.Seer.Reader.Backend.Sharlayan.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FFXIVMacroController.Seer.Reader.Backend.Sharlayan;
 
@@ -153,12 +153,6 @@ internal class SharlayanReaderBackend : IReaderBackend
                 new BmpSeerSharlayanSigException("PARTYCOUNT")));
         }
 
-        if (!signaturesFoundEvent.Signatures.Keys.Contains("CHARMAP"))
-        {
-            ReaderHandler.Game.PublishEvent(new BackendExceptionEvent(EventSource.Sharlayan,
-                new BmpSeerSharlayanSigException("CHARMAP")));
-        }
-
         _signaturesFound                           =  true;
         _reader.MemoryHandler.SignaturesFoundEvent -= SignaturesFound;
     }
@@ -224,7 +218,7 @@ internal class SharlayanReaderBackend : IReaderBackend
         GC.SuppressFinalize(this);
     }
 
-    public void GetPlayerInfo(CancellationToken cancellationToken)
+    private void GetPlayerInfo(CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
             return;

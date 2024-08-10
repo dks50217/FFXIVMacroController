@@ -11,15 +11,31 @@ using FFXIVMacroController.Model;
 using System.Text.Json;
 using FFXIVMacroController.Quotidian.Enums;
 using System.Reflection.Emit;
+using FFXIVMacroController.Seer.Events;
+using Microsoft.AspNetCore.Hosting;
+using H.Pipes.Extensions;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+#if !DEBUG
+
+builder.WebHost.ConfigureKestrel(o =>
+{
+    o.ListenAnyIP(50001, listenOptions =>
+    {
+        listenOptions.UseHttps("C:\\Users\\User\\Desktop\\test.pfx", "2266");
+    });
+});
+
+#endif
 
 builder.Services.AddSignalR();
 
 builder.Services.Configure<JsonOptions>(options => {
     options.SerializerOptions.PropertyNamingPolicy = null;
 });
+
 
 var app = builder.Build();
 
@@ -43,13 +59,14 @@ BmpPigeonhole.Initialize(AppContext.BaseDirectory + @"\Grunt.ApiTest.json");
 //BmpSeer.Instance.GameStarted += EventHelper.SendTest;
 
 BmpSeer.Instance.SetupFirewall("FFXIVMacroController");
+BmpSeer.Instance.Start();
+BmpGrunt.Instance.Start();
+
+BmpSeer.Instance
+
 
 app.MapPost("/Init", async () =>
 {
-    BmpSeer.Instance.Start();
-
-    BmpGrunt.Instance.Start();
-
     var json = File.ReadAllText("config.json");
 
     var sampleData = EventHelper.ConvertJsonToList(json);
@@ -82,6 +99,7 @@ app.MapPost("/Init", async () =>
 
     return JsonSerializer.Serialize(resultObj);
 });
+
 
 app.MapPost("/Start", async (CategoryModel model) =>
 {

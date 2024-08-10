@@ -3,10 +3,11 @@
  * Licensed under the MIT license. See https://github.com/FFXIVAPP/sharlayan/blob/master/LICENSE.md for full license information.
  */
 
-using System;
-using System.Collections.Generic;
 using FFXIVMacroController.Seer.Reader.Backend.Sharlayan.Utilities;
 using FFXIVMacroController.Seer.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace FFXIVMacroController.Seer.Reader.Backend.Sharlayan.Reader;
 
@@ -21,13 +22,11 @@ internal partial class Reader
         if (!CanGetPlayerInfo() || !MemoryHandler.IsAttached) return result;
 
         var playerInfoMap = (IntPtr) Scanner.Locations[Signatures.PlayerInformationKey];
-
         if (playerInfoMap.ToInt64() <= 6496) return result;
 
         try
         {
-            var source =
-                MemoryHandler.GetByteArray(playerInfoMap, MemoryHandler.Structures.CurrentPlayer.SourceSize);
+            var source = MemoryHandler.GetByteArray(playerInfoMap, MemoryHandler.Structures.CurrentPlayer.SourceSize);
             var actorId = SBitConverter.TryToUInt32(source, MemoryHandler.Structures.CurrentPlayer.ID);
             var playerName = MemoryHandler.GetStringFromBytes(source, MemoryHandler.Structures.CurrentPlayer.Name);
             var isCurrentlyBard = source[MemoryHandler.Structures.CurrentPlayer.JobID] == 0x17;

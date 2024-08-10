@@ -135,7 +135,7 @@ namespace Machina.FFXIV.Deucalion
                 if (!Directory.Exists(fileName.Substring(0, fileName.LastIndexOf("\\") + 1)))
                     Directory.CreateDirectory(fileName.Substring(0, fileName.LastIndexOf("\\") + 1));
 
-                string resourceName = $"BardMusicPlayer.Seer.Lib.Machina.FFXIV.Deucalion.Distrib.deucalion-0.9.0.dll";
+                string resourceName = $"FFXIVMacroController.Seer.Lib.Machina.FFXIV.Deucalion.Distrib.deucalion-0.9.0.dll";
 
                 using (Stream s = typeof(DeucalionInjector).Module.Assembly.GetManifestResourceStream(resourceName))
                 {

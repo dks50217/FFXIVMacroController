@@ -3,19 +3,17 @@
  * Licensed under the MIT license. See https://github.com/FFXIVAPP/sharlayan/blob/master/LICENSE.md for full license information.
  */
 
-using System.Collections.Generic;
 using FFXIVMacroController.Seer.Reader.Backend.Sharlayan.Models;
 using FFXIVMacroController.Seer.Reader.Backend.Sharlayan.Utilities;
+using System.Collections.Generic;
 
 namespace FFXIVMacroController.Seer.Reader.Backend.Sharlayan;
 
 internal static class Signatures
 {
-    public static string CharacterMapKey => "CHARMAP";
+    public static string PartyMapKey => "PARTYMAP";
 
     public static string PartyCountKey => "PARTYCOUNT";
-
-    public static string PartyMapKey => "PARTYMAP";
 
     public static string PlayerInformationKey => "PLAYERINFO";
 

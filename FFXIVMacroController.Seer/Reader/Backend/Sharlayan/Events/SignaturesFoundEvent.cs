@@ -3,9 +3,9 @@
  * Licensed under the MIT license. See https://github.com/FFXIVAPP/sharlayan/blob/master/LICENSE.md for full license information.
  */
 
+using FFXIVMacroController.Seer.Reader.Backend.Sharlayan.Models;
 using System;
 using System.Collections.Generic;
-using FFXIVMacroController.Seer.Reader.Backend.Sharlayan.Models;
 
 namespace FFXIVMacroController.Seer.Reader.Backend.Sharlayan.Events;
 

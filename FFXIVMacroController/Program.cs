@@ -18,17 +18,6 @@ using H.Pipes.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-#if !DEBUG
-
-builder.WebHost.ConfigureKestrel(o =>
-{
-    o.ListenAnyIP(50001, listenOptions =>
-    {
-        listenOptions.UseHttps("C:\\Users\\User\\Desktop\\test.pfx", "2266");
-    });
-});
-
-#endif
 
 builder.Services.AddSignalR();
 
@@ -62,8 +51,12 @@ BmpSeer.Instance.SetupFirewall("FFXIVMacroController");
 BmpSeer.Instance.Start();
 BmpGrunt.Instance.Start();
 
-BmpSeer.Instance
+BmpSeer.Instance.MachinaManagerLogEvent += OnMachinaManagerLogEvent;
 
+void OnMachinaManagerLogEvent(MachinaManagerLogEvent machinaManagerLogEvent)
+{
+   
+}
 
 app.MapPost("/Init", async () =>
 {

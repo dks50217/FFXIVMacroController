@@ -45,18 +45,10 @@ CancellationTokenSource cancellationTokenSource = null;
 
 BmpPigeonhole.Initialize(AppContext.BaseDirectory + @"\Grunt.ApiTest.json");
 
-//BmpSeer.Instance.GameStarted += EventHelper.SendTest;
 
 BmpSeer.Instance.SetupFirewall("FFXIVMacroController");
 BmpSeer.Instance.Start();
 BmpGrunt.Instance.Start();
-
-BmpSeer.Instance.MachinaManagerLogEvent += OnMachinaManagerLogEvent;
-
-void OnMachinaManagerLogEvent(MachinaManagerLogEvent machinaManagerLogEvent)
-{
-   
-}
 
 app.MapPost("/Init", async () =>
 {

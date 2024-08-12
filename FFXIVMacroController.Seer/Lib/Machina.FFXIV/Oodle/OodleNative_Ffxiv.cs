@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using Machina.FFXIV.Memory;
 
 namespace Machina.FFXIV.Oodle
@@ -94,7 +93,7 @@ namespace Machina.FFXIV.Oodle
 
             try
             {
-                if (!System.IO.File.Exists(path))
+                if (!File.Exists(path))
                 {
                     Trace.WriteLine($"{nameof(OodleNative_Ffxiv)}: ffxiv_dx11 executable at path {path} does not exist.", "DEBUG-MACHINA");
                     return;
@@ -108,10 +107,10 @@ namespace Machina.FFXIV.Oodle
                     // Copy file to temp directory
                     _libraryTempPath = Path.Combine(Path.GetTempPath(), "Machina.FFXIV", Guid.NewGuid().ToString() + ".exe");
 
-                    if (!Directory.Exists(_libraryTempPath.Substring(0, _libraryTempPath.LastIndexOf("\\") + 1)))
-                        Directory.CreateDirectory(_libraryTempPath.Substring(0, _libraryTempPath.LastIndexOf("\\") + 1));
+                    if (!Directory.Exists(_libraryTempPath.Substring(0, _libraryTempPath.LastIndexOf("\\", StringComparison.Ordinal) + 1)))
+                        _ = Directory.CreateDirectory(_libraryTempPath.Substring(0, _libraryTempPath.LastIndexOf("\\", StringComparison.Ordinal) + 1));
 
-                    System.IO.File.Copy(path, _libraryTempPath, true);
+                    File.Copy(path, _libraryTempPath, true);
 
                     _libraryHandle = NativeMethods.LoadLibraryW(_libraryTempPath);
                     if (_libraryHandle == IntPtr.Zero)
@@ -173,8 +172,8 @@ namespace Machina.FFXIV.Oodle
                         _OodleNetwork1TCP_Encode = (OodleNetwork1TCP_Encode_Func)Marshal.GetDelegateForFunctionPointer(
                             IntPtr.Add(_libraryHandle, _offsets[SignatureType.OodleNetwork1TCP_Encode]), typeof(OodleNetwork1TCP_Encode_Func));
 
-                    if (_OodleNetwork1UDP_State_Size == null || _OodleNetwork1_Shared_Size == null || _OodleNetwork1_Shared_SetWindow == null ||
-                        _OodleNetwork1UDP_Train == null || _OodleNetwork1UDP_Decode == null || _OodleNetwork1UDP_Encode == null)
+                    if (_OodleNetwork1TCP_State_Size == null || _OodleNetwork1_Shared_Size == null || _OodleNetwork1_Shared_SetWindow == null ||
+                        _OodleNetwork1TCP_Decode == null || _OodleNetwork1TCP_Encode == null || _OodleNetwork1TCP_Train == null)
                     {
                         Trace.WriteLine($"{nameof(OodleNative_Ffxiv)}: ERROR: Cannot find one or more signatures in ffxiv_dx11 executable.  Unable to decompress packet data.", "DEBUG-MACHINA");
 
@@ -208,11 +207,11 @@ namespace Machina.FFXIV.Oodle
                         _libraryHandle = IntPtr.Zero;
                     }
 
-                    if (System.IO.File.Exists(_libraryTempPath))
+                    if (File.Exists(_libraryTempPath))
                     {
                         try
                         {
-                            System.IO.File.Delete(_libraryTempPath);
+                            File.Delete(_libraryTempPath);
                         }
                         catch
                         {

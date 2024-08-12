@@ -1,7 +1,7 @@
 # FFXIVMacroController
 FFXIVMacroController
 
-This is a script tool rewritten based on [BardMusicPlayer](https://github.com/BardMusicPlayer/BardMusicPlayer)
+This is a script tool rewritten based on [BardMusicPlayer](https://github.com/BardMusicPlayer/BardMusicPlayer), [Machina](https://github.com/ravahn/machina), [Sharlayan](https://github.com/FFXIVAPP/sharlayan)
 
 ![demo](./Image/demo.gif)
 

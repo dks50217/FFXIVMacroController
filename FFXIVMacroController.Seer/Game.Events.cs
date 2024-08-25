@@ -153,6 +153,9 @@ public partial class Game
                     }
 
                     break;
+                case EnsembleNone chatLog:
+                    BmpSeer.Instance.PublishEvent(chatLog);
+                    break;
             }
         }
         catch (Exception ex)

@@ -16,4 +16,6 @@ internal class StructuresContainer
     public World World { get; set; } = new();
 
     public CharacterId CharacterId { get; set; } = new();
+
+    public ChatLogPointers ChatLogPointers { get; set; } = new();
 }

@@ -136,7 +136,12 @@
                 </el-row>
 
                 <el-row :gutter="20" style="margin:10px">
-                   {{chatMessage}}
+                    <el-input type="textarea"
+                          v-model="chatMessage"
+                          rows="20"
+                          :disabled="true"
+                          ref="textareaRef"
+                          :style="{ overflowY: 'auto' }" />
                 </el-row>
 
                 <el-dialog title="待新增" :visible.sync="form.dialogFormVisible">

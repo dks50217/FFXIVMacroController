@@ -8,6 +8,7 @@ using FFXIVMacroController.Quotidian.Structs;
 using FFXIVMacroController.Seer.Events;
 using FFXIVMacroController.Seer.Reader.Backend.Sharlayan.Events;
 using FFXIVMacroController.Seer.Reader.Backend.Sharlayan.Models;
+using FFXIVMacroController.Seer.Reader.Backend.Sharlayan.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -199,6 +200,9 @@ internal class SharlayanReaderBackend : IReaderBackend
                 GetPartyMembers(token);
                 GetChatInputOpen(token);
 
+                // 20240823: Added Ensemble eventss
+                GetEnsembleEvents();
+
                 _lastScan.FirstScan = false;
             }
             catch (Exception ex)
@@ -216,6 +220,42 @@ internal class SharlayanReaderBackend : IReaderBackend
     {
         DestroySharlayan();
         GC.SuppressFinalize(this);
+    }
+
+    private void GetEnsembleEvents()
+    {
+        if (!_reader.CanGetChatLog()) return;
+        var result = _reader.GetChatLog(_lastScan.PreviousArrayIndex, _lastScan.PreviousOffset);
+        _lastScan.PreviousArrayIndex = result.PreviousArrayIndex;
+        _lastScan.PreviousOffset = result.PreviousOffset;
+        foreach (var ensembleFlag in from item in result.ChatLogItems
+                                     where item.Code.Equals("08AE")
+                                     || item.Code.Equals("0842")
+                                     //where item.Code.Equals("0039") 
+                                     //|| item.Code.Equals("003C")
+                                     select EnsembleMessageLookup.GetEnsembleFlag(item.Line))
+        {
+            switch (ensembleFlag)
+            {
+                case EnsembleMessageLookup.EnsembleFlag.Request:
+                    ReaderHandler.Game.PublishEvent(new EnsembleRequested(EventSource.Sharlayan));
+                    break;
+                case EnsembleMessageLookup.EnsembleFlag.Start:
+                    ReaderHandler.Game.PublishEvent(new EnsembleStarted(EventSource.Sharlayan));
+                    break;
+                case EnsembleMessageLookup.EnsembleFlag.Stop:
+                    ReaderHandler.Game.PublishEvent(new EnsembleStopped(EventSource.Sharlayan));
+                    break;
+                case EnsembleMessageLookup.EnsembleFlag.Reject:
+                    ReaderHandler.Game.PublishEvent(new EnsembleRejected(EventSource.Sharlayan));
+                    break;
+                case EnsembleMessageLookup.EnsembleFlag.None:
+                    ReaderHandler.Game.PublishEvent(new EnsembleNone(EventSource.Sharlayan, result.ChatLogItems.Select(c => c.Line).ToArray()));
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
     }
 
     private void GetPlayerInfo(CancellationToken cancellationToken)

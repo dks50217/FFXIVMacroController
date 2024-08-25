@@ -202,6 +202,12 @@ public partial class BmpSeer
     /// </summary>
     public event PlayerNameChangedHandler PlayerNameChanged;
 
+    public delegate void IsGotChatLogHandler(EnsembleNone seerEvent);
+
+    public event IsGotChatLogHandler IsGotChatLog;
+
+    private void OnIsGotChatLog(EnsembleNone seerEvent) => IsGotChatLog?.Invoke(seerEvent);
+
     private void OnPlayerNameChanged(PlayerNameChanged seerEvent) => PlayerNameChanged?.Invoke(seerEvent);
 
     private async Task RunEventsHandler(CancellationToken token)
@@ -277,6 +283,10 @@ public partial class BmpSeer
                         break;
                     case PlayerNameChanged playerNameChanged:
                         OnPlayerNameChanged(playerNameChanged);
+                        break;
+
+                    case EnsembleNone isGotChatLog:
+                        OnIsGotChatLog(isGotChatLog);
                         break;
                 }
             }

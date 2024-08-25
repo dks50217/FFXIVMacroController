@@ -286,14 +286,20 @@
             let _self = this;
 
             _self.connection = new signalR.HubConnectionBuilder()
-                .withUrl("/chatHub")
+                .withUrl("../chatHub")
                 .build();
 
-            connection.on("ReceiveMessage", (user, message) => {
-                _self.chatMessage = `${user}: ${message}`;
+            _self.connection.on("ReceiveMessage", (user, message) => {
+                _self.chatMessage += `${user}: ${message}` + '\r\n';
             });
 
-            connection.start().catch(err => console.error(err.toString()));
+            _self.connection.start().catch(err => console.error(err.toString()));
+        }
+    },
+    watch: {
+        chatMessage(newVal, oldVal) {
+            const textarea = this.$refs.textareaRef.$refs.textarea;
+            textarea.scrollTop = textarea.scrollHeight + 100;
         }
     },
     mounted() {

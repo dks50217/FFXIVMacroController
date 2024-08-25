@@ -11,6 +11,7 @@ namespace FFXIVMacroController.Seer.Reader.Backend.Sharlayan;
 
 internal static class Signatures
 {
+    public static string ChatLogKey => "CHATLOG";
     public static string PartyMapKey => "PARTYMAP";
 
     public static string PartyCountKey => "PARTYCOUNT";

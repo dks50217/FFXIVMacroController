@@ -14,6 +14,8 @@ using System.Reflection.Emit;
 using FFXIVMacroController.Seer.Events;
 using Microsoft.AspNetCore.Hosting;
 using H.Pipes.Extensions;
+using System.Net.Sockets;
+using Microsoft.AspNetCore.SignalR;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -46,9 +48,22 @@ CancellationTokenSource cancellationTokenSource = null;
 BmpPigeonhole.Initialize(AppContext.BaseDirectory + @"\Grunt.ApiTest.json");
 
 
+
 BmpSeer.Instance.SetupFirewall("FFXIVMacroController");
 BmpSeer.Instance.Start();
 BmpGrunt.Instance.Start();
+
+
+var hubContext = app.Services.GetRequiredService<IHubContext<ChatHub>>();
+BmpSeer.Instance.IsGotChatLog += OnGotChatLog;
+
+void OnGotChatLog(EnsembleNone seerEvent)
+{
+    seerEvent.ChatLog.ToList().ForEach(chat =>
+    {
+        hubContext.Clients.All.SendAsync("ReceiveMessage", "System", chat);
+    });
+}
 
 app.MapPost("/Init", async () =>
 {

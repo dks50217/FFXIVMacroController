@@ -3,9 +3,14 @@ FFXIVMacroController
 
 This is a script tool rewritten based on [BardMusicPlayer](https://github.com/BardMusicPlayer/BardMusicPlayer)
 
+FFXIV Macro Controller 是一個專為 Final Fantasy XIV 設計的腳本控制器，旨在簡化和自動化遊戲中的多種操作。此工具提供了多種功能，包括按鍵模擬、滑鼠點擊和文本輸入等。
+
 ![demo](./Image/demo.gif)
 
 allow you run scripts in the background window, so you can watch YouTube or do other stuff on the same computer at the same time.
+
+- **按鍵模擬**：自動化按鍵輸入，支持多種按鍵組合。
+- **文本輸入**：自動輸入預定義的文本指令。
 
 # How To Use
 

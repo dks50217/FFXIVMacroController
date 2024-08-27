@@ -231,6 +231,7 @@ internal class SharlayanReaderBackend : IReaderBackend
         foreach (var ensembleFlag in from item in result.ChatLogItems
                                      where item.Code.Equals("08AE")
                                      || item.Code.Equals("0842")
+                                     || item.Code.Equals("08C2")
                                      //where item.Code.Equals("0039") 
                                      //|| item.Code.Equals("003C")
                                      select EnsembleMessageLookup.GetEnsembleFlag(item.Line))
@@ -250,7 +251,7 @@ internal class SharlayanReaderBackend : IReaderBackend
                     ReaderHandler.Game.PublishEvent(new EnsembleRejected(EventSource.Sharlayan));
                     break;
                 case EnsembleMessageLookup.EnsembleFlag.None:
-                    ReaderHandler.Game.PublishEvent(new EnsembleNone(EventSource.Sharlayan, result.ChatLogItems.Select(c => c.Line).ToArray()));
+                    ReaderHandler.Game.PublishEvent(new EnsembleNone(EventSource.Sharlayan, result.ChatLogItems.Select(c => $"{c.Line} ({c.Code})").ToArray()));
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

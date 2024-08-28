@@ -1,5 +1,6 @@
 # FFXIVMacroController
-FFXIVMacroController
+
+## **This application does not need to rely on Dalamud or XIVLauncher.**
 
 This is a script tool rewritten based on [BardMusicPlayer](https://github.com/BardMusicPlayer/BardMusicPlayer), [Machina](https://github.com/ravahn/machina), [Sharlayan](https://github.com/FFXIVAPP/sharlayan)
 

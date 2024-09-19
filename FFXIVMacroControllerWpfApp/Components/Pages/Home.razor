@@ -1,0 +1,120 @@
+﻿@page "/"
+@using System.IO
+@using System.Collections.ObjectModel
+@using Microsoft.JSInterop
+@inject NavigationManager navigationManager
+@inject IJSRuntime JSRuntime
+
+<RadzenLayout style="position: relative;grid-template-areas: 'rz-sidebar rz-header' 'rz-sidebar rz-body'">
+    <RadzenHeader>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
+            <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
+                <RadzenButton Icon="add_circle" ButtonStyle="ButtonStyle.Success" Click="AddMacroItem" />
+                <RadzenButton Icon="refresh" ButtonStyle="ButtonStyle.Base" />
+                <RadzenButton Icon="privacy_tip" ButtonStyle="ButtonStyle.Info" />
+                <RadzenButton Icon="check_circle" ButtonStyle="ButtonStyle.Success" />
+                <RadzenButton Icon="done_all" ButtonStyle="ButtonStyle.Success" />
+                <RadzenButton Icon="report" ButtonStyle="ButtonStyle.Danger" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenHeader>
+    <RadzenSidebar Responsive="false" @bind-Expanded="@sidebarExpanded" style="position: absolute; z-index: 3">
+        <RadzenStack AlignItems="AlignItems.End" class="rz-p-2">
+            <RadzenButton Icon="west" Variant="Variant.Text" ButtonStyle="ButtonStyle.Secondary" Click="@(() => sidebarExpanded = false)" />
+        </RadzenStack>
+        <RadzenPanelMenu>
+            <RadzenPanelMenuItem Text="Home" Icon="home" />
+        </RadzenPanelMenu>
+    </RadzenSidebar>
+    <RadzenBody>
+        <div class="rz-p-4">
+
+            @if (isLoading)
+            {
+                <RadzenProgressBarCircular Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+            }
+            else
+            {
+                <RadzenTabs TabPosition="@TabPosition.Top" RenderMode="TabRenderMode.Client">
+                    <Tabs>
+                        @foreach (var item in rootModel!.categoryList)
+                        {
+                            <RadzenTabsItem Text="@item?.name">
+                                <ListComponent Category="item" KeyList="keyList" TypeList="typeList"></ListComponent>
+                            </RadzenTabsItem>
+                        }
+                    </Tabs>
+                </RadzenTabs>
+            }
+        </div>
+    </RadzenBody>
+    @if (sidebarExpanded)
+    {
+        <div @onclick="@(() => sidebarExpanded = false)" class="rz-dialog-mask" style="position: absolute; z-index: 2"></div>
+    }
+</RadzenLayout>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await InitConfigData();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender == false)
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task AddMacroItem()
+    {
+        
+    }
+
+    bool sidebarExpanded = false;
+    private int selectedTab { get; set; } = 0;
+    private decimal? value = 1;
+    private MacroRootModel? rootModel { get; set; }
+    private List<OptionModel>? keyList { get; set; }
+    private List<OptionModel>? typeList { get; set; }
+    private bool isLoading { get; set; } = true;
+
+    private async Task InitConfigData()
+    {
+        var json = await File.ReadAllTextAsync("config.json");
+
+        this.rootModel = EventHelper.ConvertJsonToList(json);
+
+        this.keyList = Enum.GetValues(typeof(Keys)).Cast<Keys>().Select(n => new OptionModel
+        {
+            label = Enum.GetName(n),
+            value = (int)n
+        })
+        .Distinct()
+        .ToList();
+
+
+        this.typeList = Enum.GetValues(typeof(Types)).Cast<Types>().Select(n => new OptionModel
+        {
+            label = Enum.GetName(n),
+            value = (int)n
+        })
+        .Distinct()
+        .ToList();
+
+
+        // var game = BmpSeer.Instance.Games.Values.FirstOrDefault();
+
+        // var resultObj = new
+        // {
+        //     rootData = rootModel,
+        //     keyOptions = keyList,
+        //     typeOptions = typeList,
+        //     gamePath = game?.GamePath
+        // };
+    }
+}

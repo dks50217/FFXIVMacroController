@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFXIVMacroController.Quotid
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFXIVMacroController.Seer", "FFXIVMacroController.Seer\FFXIVMacroController.Seer.csproj", "{49EA1454-FEFB-4F58-B02A-ADB61F61334F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFXIVMacroControllerWpfApp", "FFXIVMacroControllerWpfApp\FFXIVMacroControllerWpfApp.csproj", "{BBA480B5-6B49-4A29-91FB-9B4D284EE695}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +63,14 @@ Global
 		{49EA1454-FEFB-4F58-B02A-ADB61F61334F}.Release|Any CPU.Build.0 = Release|x64
 		{49EA1454-FEFB-4F58-B02A-ADB61F61334F}.Release|x64.ActiveCfg = Release|x64
 		{49EA1454-FEFB-4F58-B02A-ADB61F61334F}.Release|x64.Build.0 = Release|x64
+		{BBA480B5-6B49-4A29-91FB-9B4D284EE695}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBA480B5-6B49-4A29-91FB-9B4D284EE695}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBA480B5-6B49-4A29-91FB-9B4D284EE695}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BBA480B5-6B49-4A29-91FB-9B4D284EE695}.Debug|x64.Build.0 = Debug|Any CPU
+		{BBA480B5-6B49-4A29-91FB-9B4D284EE695}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBA480B5-6B49-4A29-91FB-9B4D284EE695}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBA480B5-6B49-4A29-91FB-9B4D284EE695}.Release|x64.ActiveCfg = Release|Any CPU
+		{BBA480B5-6B49-4A29-91FB-9B4D284EE695}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

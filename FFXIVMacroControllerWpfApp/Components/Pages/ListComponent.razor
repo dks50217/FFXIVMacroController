@@ -1,0 +1,94 @@
+﻿@using System.Collections.ObjectModel
+@using Microsoft.JSInterop
+@inject IJSRuntime JSRuntime
+
+
+<RadzenDataGrid RowRender="@RowRender" @bind-Value="selectedMacros" ColumnWidth="150px" AllowFiltering="true" AllowSorting="true" Data="@marcoList">
+        <Columns>
+            <RadzenDataGridColumn Property="@nameof(MacroModel.keyNumber)" Title="按鍵" Sortable="false" Filterable="false" Width="180px">
+                <Template Context="data">
+                    <RadzenDropDown @bind-Value="data.keyNumber"
+                                    AllowFiltering="true"
+                                    TextProperty="@nameof(OptionModel.label)"
+                                    ValueProperty="@nameof(OptionModel.value)"
+                                    Data="KeyList"
+                                    Style="width: 100%; max-width: 400px;" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Property="@nameof(MacroModel.type)" Title="類型">
+                <Template Context="data">
+                    <RadzenDropDown @bind-Value="data.type"
+                                    AllowFiltering="true"
+                                    TextProperty="@nameof(OptionModel.label)"
+                                    ValueProperty="@nameof(OptionModel.value)"
+                                    Data="TypeList"
+                                    Style="width: 100%; max-width: 400px;" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Property="@nameof(MacroModel.sleep)" Title="執行後暫停">
+                <Template Context="data">
+                    <RadzenNumeric @bind-Value="data.sleep" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "enter value" }})" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Property="@nameof(MacroModel.inputText)" Title="文字">
+                <Template Context="data">
+                <RadzenTextBox @bind-Value="data.inputText" Style="width: 100%" aria-label="Default TextBox" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+</RadzenDataGrid>
+
+
+@code {
+
+    private ObservableCollection<MacroModel>? marcoList;
+    private MacroModel? draggedItem;
+    private IList<MacroModel>? selectedMacros;
+
+    [Parameter]
+    public CategoryModel? Category { get; set; }
+
+    [Parameter]
+    public List<OptionModel>? KeyList { get; set; }
+
+    [Parameter]
+    public List<OptionModel>? TypeList { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Category != null)
+        {
+            marcoList = new ObservableCollection<MacroModel>(Category.macroList);
+
+            selectedMacros = new List<MacroModel>() { marcoList.FirstOrDefault() };
+        }
+
+        await base.OnInitializedAsync();
+    }
+   
+    private void RowRender(RowRenderEventArgs<MacroModel> args)
+    {
+        args.Attributes.Add("title", "Drag row to reorder");
+        args.Attributes.Add("style", "cursor:grab");
+        args.Attributes.Add("draggable", "true");
+        args.Attributes.Add("ondragover", "event.preventDefault();event.target.closest('.rz-data-row').classList.add('my-class')");
+        args.Attributes.Add("ondragleave", "event.target.closest('.rz-data-row').classList.remove('my-class')");
+        args.Attributes.Add("ondragstart", EventCallback.Factory.Create<DragEventArgs>(this, () => draggedItem = args.Data));
+        args.Attributes.Add("ondrop", EventCallback.Factory.Create<DragEventArgs>(this, () =>
+        {
+            var draggedIndex = marcoList.IndexOf(draggedItem);
+            var droppedIndex = marcoList.IndexOf(args.Data);
+            marcoList.Remove(draggedItem);
+            marcoList.Insert(draggedIndex <= droppedIndex ? droppedIndex++ : droppedIndex, draggedItem);
+
+            JSRuntime.InvokeVoidAsync("eval", $"document.querySelector('.my-class').classList.remove('my-class')");
+        }));
+    }
+}
+
+<style>
+    .my-class td {
+        border-top: 1px solid black;
+        border-bottom: 1px solid black;
+    }
+</style>

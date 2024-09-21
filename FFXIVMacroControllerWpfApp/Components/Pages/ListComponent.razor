@@ -3,8 +3,20 @@
 @inject IJSRuntime JSRuntime
 
 
-<RadzenDataGrid RowRender="@RowRender" @bind-Value="selectedMacros" ColumnWidth="150px" AllowFiltering="true" AllowSorting="true" Data="@marcoList">
-        <Columns>
+<RadzenDataGrid @ref="ordersGrid" RowRender="@RowRender" @bind-Value="selectedMacros" ColumnWidth="150px" AllowFiltering="true" AllowSorting="true" Data="@marcoList">
+    <HeaderTemplate>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="10">
+            <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Click="@InsertRow" />
+            <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="refresh" />
+            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="cancel" />
+            <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="done_all" />
+            <RadzenFormField Text="重複次數" Variant="Variant.Outlined">
+                <RadzenNumeric @bind-Value="@Category.repeat" Min="1" />
+            </RadzenFormField>
+        </RadzenStack>
+    </HeaderTemplate>
+    
+    <Columns>
             <RadzenDataGridColumn Property="@nameof(MacroModel.keyNumber)" Title="按鍵" Sortable="false" Filterable="false" Width="180px">
                 <Template Context="data">
                     <RadzenDropDown @bind-Value="data.keyNumber"
@@ -17,7 +29,7 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Property="@nameof(MacroModel.type)" Title="類型">
                 <Template Context="data">
-                    <RadzenDropDown @bind-Value="data.type"
+                    <RadzenDropDown @bind-Value="data.typeNumber"
                                     AllowFiltering="true"
                                     TextProperty="@nameof(OptionModel.label)"
                                     ValueProperty="@nameof(OptionModel.value)"
@@ -27,14 +39,19 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Property="@nameof(MacroModel.sleep)" Title="執行後暫停">
                 <Template Context="data">
-                    <RadzenNumeric @bind-Value="data.sleep" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "enter value" }})" />
+                    <RadzenNumeric Min="1" @bind-Value="data.sleep" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "enter value" }})" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Property="@nameof(MacroModel.inputText)" Title="文字">
                 <Template Context="data">
-                <RadzenTextBox @bind-Value="data.inputText" Style="width: 100%" aria-label="Default TextBox" />
+                    <RadzenTextBox @bind-Value="data.inputText" Style="width: 100%" aria-label="Default TextBox" />
                 </Template>
             </RadzenDataGridColumn>
+        <RadzenDataGridColumn Width="50px" Context="data" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+            <Template Context="data">
+                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="@(args => DeleteRow(data))" @onclick:stopPropagation="true"></RadzenButton>
+            </Template>
+        </RadzenDataGridColumn>
         </Columns>
 </RadzenDataGrid>
 
@@ -54,7 +71,11 @@
     [Parameter]
     public List<OptionModel>? TypeList { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    DataGridEditMode editMode = DataGridEditMode.Single;
+
+    RadzenDataGrid<MacroModel> ordersGrid;
+
+    protected override void OnInitialized()
     {
         if (Category != null)
         {
@@ -62,10 +83,29 @@
 
             selectedMacros = new List<MacroModel>() { marcoList.FirstOrDefault() };
         }
-
-        await base.OnInitializedAsync();
     }
-   
+
+    protected async Task InsertRow()
+    {
+        var marco = new MacroModel()
+        {
+            type = Types.button,
+            key = Keys.D1,
+            sleep = 3,
+            keyNumber = (int)Keys.D1,
+            inputText = "/echo 123"
+        };
+
+        this.marcoList?.Add(marco);
+        await ordersGrid.Reload();
+    }
+
+    protected async Task DeleteRow(MacroModel macro)
+    {
+        this.marcoList?.Remove(macro);
+        await ordersGrid.Reload();
+    }
+
     private void RowRender(RowRenderEventArgs<MacroModel> args)
     {
         args.Attributes.Add("title", "Drag row to reorder");

@@ -8,7 +8,7 @@
 <RadzenLayout style="position: relative;grid-template-areas: 'rz-sidebar rz-header' 'rz-sidebar rz-body'">
     <RadzenHeader>
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
-            <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
+            @* <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
                 <RadzenButton Icon="add_circle" ButtonStyle="ButtonStyle.Success" Click="AddMacroItem" />
                 <RadzenButton Icon="refresh" ButtonStyle="ButtonStyle.Base" />
@@ -16,7 +16,7 @@
                 <RadzenButton Icon="check_circle" ButtonStyle="ButtonStyle.Success" />
                 <RadzenButton Icon="done_all" ButtonStyle="ButtonStyle.Success" />
                 <RadzenButton Icon="report" ButtonStyle="ButtonStyle.Danger" />
-            </RadzenStack>
+            </RadzenStack> *@
         </RadzenStack>
     </RadzenHeader>
     <RadzenSidebar Responsive="false" @bind-Expanded="@sidebarExpanded" style="position: absolute; z-index: 3">
@@ -56,23 +56,14 @@
 </RadzenLayout>
 
 @code {
+    private int CurrentTabIndex { get; set; } = 0;
+
+    private CategoryModel? Category { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         await InitConfigData();
-    }
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (firstRender == false)
-        {
-            isLoading = false;
-            StateHasChanged();
-        }
-    }
-
-    private async Task AddMacroItem()
-    {
-        
+        isLoading = false;
     }
 
     bool sidebarExpanded = false;
@@ -118,3 +109,9 @@
         // };
     }
 }
+
+<style scoped>
+    .addTab .ui-tabview-left-icon {
+        background-color :red;
+    }
+</style>

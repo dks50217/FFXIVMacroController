@@ -56,6 +56,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="27675310.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="8.0.82" />
     <PackageReference Include="Radzen.Blazor" Version="5.2.0" />
   </ItemGroup>

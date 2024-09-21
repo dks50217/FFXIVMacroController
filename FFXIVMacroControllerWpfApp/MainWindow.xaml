@@ -6,6 +6,7 @@
         xmlns:blazor="clr-namespace:Microsoft.AspNetCore.Components.WebView.Wpf;assembly=Microsoft.AspNetCore.Components.WebView.Wpf"
         xmlns:components="clr-namespace:FFXIVMacroControllerWpfApp.Components.Pages"
         mc:Ignorable="d"
+        Icon="27675310.ico"
         Title="FFXIVMacroController" Height="500" Width="800">
     <Grid>
         <blazor:BlazorWebView HostPage="wwwroot\index.html" Services="{DynamicResource services}">

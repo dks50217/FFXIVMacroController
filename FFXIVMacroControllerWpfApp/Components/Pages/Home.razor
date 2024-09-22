@@ -1,64 +1,90 @@
 ﻿@page "/"
 @using System.IO
 @using System.Collections.ObjectModel
+@using FFXIVMacroController.Grunt
 @using Microsoft.JSInterop
+@using System.Text.Json
 @inject NavigationManager navigationManager
 @inject IJSRuntime JSRuntime
+@inject ContextMenuService contextMenuService
+@inject DialogService dialogService
 
 <RadzenLayout style="position: relative;grid-template-areas: 'rz-sidebar rz-header' 'rz-sidebar rz-body'">
     <RadzenHeader>
-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
-            @* <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
-            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
-                <RadzenButton Icon="add_circle" ButtonStyle="ButtonStyle.Success" Click="AddMacroItem" />
-                <RadzenButton Icon="refresh" ButtonStyle="ButtonStyle.Base" />
-                <RadzenButton Icon="privacy_tip" ButtonStyle="ButtonStyle.Info" />
-                <RadzenButton Icon="check_circle" ButtonStyle="ButtonStyle.Success" />
-                <RadzenButton Icon="done_all" ButtonStyle="ButtonStyle.Success" />
-                <RadzenButton Icon="report" ButtonStyle="ButtonStyle.Danger" />
-            </RadzenStack> *@
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="5">
+            <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
+            <RadzenAlert Variant="Variant.Filled" AlertStyle="MessageAlertStyle" Size="AlertSize.Small" AllowClose="false">
+                @Message
+            </RadzenAlert>
+            <RadzenPanel AllowCollapse="true">
+                <ChildContent>
+                    <RadzenCard class="rz-mt-4">
+                        <RadzenAlert Variant="Variant.Filled" AlertStyle="AlertStyle.Info" AllowClose="false" Text="@CurrentGame?.GamePath"></RadzenAlert>
+                        <RadzenAlert Variant="Variant.Filled" AlertStyle="AlertStyle.Info" AllowClose="false" Text="@CurrentGame?.PlayerName"></RadzenAlert>
+                    </RadzenCard>
+               </ChildContent>
+            </RadzenPanel>
         </RadzenStack>
     </RadzenHeader>
-    <RadzenSidebar Responsive="false" @bind-Expanded="@sidebarExpanded" style="position: absolute; z-index: 3">
-        <RadzenStack AlignItems="AlignItems.End" class="rz-p-2">
-            <RadzenButton Icon="west" Variant="Variant.Text" ButtonStyle="ButtonStyle.Secondary" Click="@(() => sidebarExpanded = false)" />
-        </RadzenStack>
-        <RadzenPanelMenu>
-            <RadzenPanelMenuItem Text="Home" Icon="home" />
-        </RadzenPanelMenu>
-    </RadzenSidebar>
-    <RadzenBody>
-        <div class="rz-p-4">
-
+    <RadzenSidebar Responsive="false" Style="width: max-content">
+        <RadzenPanelMenu DisplayStyle="@(sidebarExpanded ? MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon)" ShowArrow="false">
             @if (isLoading)
             {
                 <RadzenProgressBarCircular Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
             }
             else
             {
-                <RadzenTabs TabPosition="@TabPosition.Top" RenderMode="TabRenderMode.Client">
-                    <Tabs>
-                        @foreach (var item in rootModel!.categoryList)
-                        {
-                            <RadzenTabsItem Text="@item?.name">
-                                <ListComponent Category="item" KeyList="keyList" TypeList="typeList"></ListComponent>
-                            </RadzenTabsItem>
-                        }
-                    </Tabs>
-                </RadzenTabs>
+                <RadzenPanelMenuItem>
+                    <Template>
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
+                            <RadzenButton Click=handleAdd Icon="add" ButtonStyle="ButtonStyle.Success" />
+                            <RadzenButton Click=handleSave Icon="save" ButtonStyle="ButtonStyle.Success" />
+                        </RadzenStack>
+                    </Template>
+                </RadzenPanelMenuItem>
+                
+                @foreach (var item in rootModel!.categoryList)
+                {
+                    <RadzenPanelMenuItem Click="((arg) => PanelMenuClick(item))">
+                        <Template>
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
+                                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.ExtraSmall" />
+                                @item.name
+                            </RadzenStack>
+                        </Template>
+                    </RadzenPanelMenuItem>
+                }
             }
+        </RadzenPanelMenu>
+    </RadzenSidebar>
+    <RadzenBody>
+        <div class="rz-p-4">
+            @if (Category != null)
+            {
+                <ListComponent Category="Category" 
+                               KeyList="keyList" 
+                               TypeList="typeList"
+                               CallPlay="handlePlay"
+                               NameChanged="handleNameChanged"></ListComponent>
+            }    
         </div>
     </RadzenBody>
-    @if (sidebarExpanded)
-    {
-        <div @onclick="@(() => sidebarExpanded = false)" class="rz-dialog-mask" style="position: absolute; z-index: 2"></div>
-    }
 </RadzenLayout>
+
+
+
+
 
 @code {
     private int CurrentTabIndex { get; set; } = 0;
 
+    private RadzenTabs? tabs;
+
     private CategoryModel? Category { get; set; }
+
+    private int selectedIndex = 0;
+
+    private Game? CurrentGame { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -66,13 +92,18 @@
         isLoading = false;
     }
 
-    bool sidebarExpanded = false;
+    bool sidebarExpanded = true;
     private int selectedTab { get; set; } = 0;
     private decimal? value = 1;
     private MacroRootModel? rootModel { get; set; }
     private List<OptionModel>? keyList { get; set; }
     private List<OptionModel>? typeList { get; set; }
     private bool isLoading { get; set; } = true;
+    private string? newTabName { get; set; } = "New Macro";
+    private string? Message { get; set; } = "No Message";
+    private AlertStyle MessageAlertStyle { get; set; } = AlertStyle.Info;
+    private CancellationTokenSource cancellationTokenSource = null;
+
 
     private async Task InitConfigData()
     {
@@ -97,16 +128,85 @@
         .Distinct()
         .ToList();
 
+        await Task.Delay(1000);
 
-        // var game = BmpSeer.Instance.Games.Values.FirstOrDefault();
+        CurrentGame = BmpSeer.Instance.Games.Values.FirstOrDefault();
+    }
 
-        // var resultObj = new
-        // {
-        //     rootData = rootModel,
-        //     keyOptions = keyList,
-        //     typeOptions = typeList,
-        //     gamePath = game?.GamePath
-        // };
+    protected override void OnParametersSet()
+    {
+        this.Category = this.rootModel.categoryList.First();
+    }
+
+    private void PanelMenuClick(CategoryModel model)
+    {
+        this.Category = model;
+    }
+
+    private async Task handlePlay(CategoryModel model)
+    {
+        if (!BmpSeer.Instance.Started)
+        {
+            BmpSeer.Instance.Start();
+
+            BmpGrunt.Instance.Start();
+
+            await Task.Delay(1000);
+        }
+
+        var game = BmpSeer.Instance.Games.Values.FirstOrDefault();
+
+        if (game == null)
+        {
+            return;
+        }
+
+        cancellationTokenSource = new CancellationTokenSource();
+        CancellationToken cancellationToken = cancellationTokenSource.Token;
+        await EventHelper.SendInput_Token(game, model.macroList, cancellationToken);
+    }
+
+    private void handleNameChanged(ChangeEventArgs args)
+    {
+        this.Category.name = args.Value.ToString();
+    }
+
+    private async Task handleSave()
+    {
+        try
+        {
+            string json = JsonSerializer.Serialize(this.rootModel);
+            await File.WriteAllTextAsync(AppDomain.CurrentDomain.BaseDirectory + @"\config.json", json);
+            MessageAlertStyle = AlertStyle.Success;
+            Message = "儲存成功";
+        }
+        catch (Exception ex)
+        {
+            MessageAlertStyle = AlertStyle.Danger;
+            Message = ex.Message;
+        }
+    }
+
+    private void handleAdd()
+    {
+        var lastItem = this.rootModel?.categoryList.Last();
+
+        if (lastItem != null)
+        {
+            var cloneItem = lastItem.Clone() as CategoryModel;
+
+            cloneItem.name = this.newTabName;
+
+            this.rootModel?.categoryList.Add(cloneItem!);
+        }
+
+        tabs?.Reload();
+    }
+
+    private void handleDelete(CategoryModel model)
+    {
+        this.rootModel?.categoryList.Remove(model);
+        this.StateHasChanged();
     }
 }
 

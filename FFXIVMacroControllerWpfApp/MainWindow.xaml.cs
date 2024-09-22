@@ -34,7 +34,7 @@ namespace FFXIVMacroControllerWpfApp
 
             Resources.Add("services", serviceCollection.BuildServiceProvider());
 
-            //InitializeApp();
+            InitializeApp();
         }
 
         private void InitializeApp()

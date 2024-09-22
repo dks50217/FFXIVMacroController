@@ -6,10 +6,12 @@
 <RadzenDataGrid @ref="ordersGrid" RowRender="@RowRender" @bind-Value="selectedMacros" ColumnWidth="150px" AllowFiltering="true" AllowSorting="true" Data="@marcoList">
     <HeaderTemplate>
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="10">
+            <RadzenFormField Text="巨集名稱" Variant="Variant.Outlined">
+                <RadzenTextBox Style="width: 50%" Value="@Category.name" @oninput=NameChanged />
+            </RadzenFormField>
             <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Click="@InsertRow" />
-            <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="refresh" />
-            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="cancel" />
-            <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="done_all" />
+            <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="play_arrow" Click="@handleClickPlay" />
+            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="cancel" Click="CallCancel" />
             <RadzenFormField Text="重複次數" Variant="Variant.Outlined">
                 <RadzenNumeric @bind-Value="@Category.repeat" Min="1" />
             </RadzenFormField>
@@ -39,7 +41,7 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Property="@nameof(MacroModel.sleep)" Title="執行後暫停">
                 <Template Context="data">
-                    <RadzenNumeric Min="1" @bind-Value="data.sleep" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "enter value" }})" />
+                <RadzenNumeric ShowUpDown="false" TValue="int" Min="1" @bind-Value="data.sleep" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Property="@nameof(MacroModel.inputText)" Title="文字">
@@ -71,11 +73,20 @@
     [Parameter]
     public List<OptionModel>? TypeList { get; set; }
 
+    [Parameter]
+    public EventCallback<ChangeEventArgs> NameChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<CategoryModel> CallPlay { get; set; }
+
+    [Parameter]
+    public EventCallback CallCancel { get; set; }
+
     DataGridEditMode editMode = DataGridEditMode.Single;
 
     RadzenDataGrid<MacroModel> ordersGrid;
 
-    protected override void OnInitialized()
+    protected override void OnParametersSet()
     {
         if (Category != null)
         {
@@ -98,12 +109,19 @@
 
         this.marcoList?.Add(marco);
         await ordersGrid.Reload();
+        this.Category.macroList = this.marcoList.ToList();
     }
 
     protected async Task DeleteRow(MacroModel macro)
     {
         this.marcoList?.Remove(macro);
         await ordersGrid.Reload();
+        this.Category.macroList = this.marcoList.ToList();
+    }
+
+    protected async Task handleClickPlay()
+    {
+        await CallPlay.InvokeAsync(this.Category);
     }
 
     private void RowRender(RowRenderEventArgs<MacroModel> args)
@@ -120,7 +138,7 @@
             var droppedIndex = marcoList.IndexOf(args.Data);
             marcoList.Remove(draggedItem);
             marcoList.Insert(draggedIndex <= droppedIndex ? droppedIndex++ : droppedIndex, draggedItem);
-
+            this.Category.macroList = marcoList.ToList();
             JSRuntime.InvokeVoidAsync("eval", $"document.querySelector('.my-class').classList.remove('my-class')");
         }));
     }

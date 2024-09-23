@@ -14,9 +14,9 @@
     <RadzenHeader>
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="5">
             <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
-            <RadzenAlert Variant="Variant.Filled" AlertStyle="MessageAlertStyle" Size="AlertSize.Small" AllowClose="false">
+@*             <RadzenAlert Variant="Variant.Filled" AlertStyle="MessageAlertStyle" Size="AlertSize.Small" AllowClose="false">
                 @Message
-            </RadzenAlert>
+            </RadzenAlert> *@
 @*             <RadzenPanel AllowCollapse="true">
                 <ChildContent>
                     <RadzenCard class="rz-mt-4">
@@ -62,6 +62,8 @@
         <div class="rz-p-4">
             @if (Category != null)
             {
+                <RadzenProgressBar @bind-Value="@ProgressBarValue" />
+                
                 <ListComponent @ref="listComponent"
                                Category="Category" 
                                KeyList="keyList" 
@@ -91,6 +93,8 @@
 
     private Game? CurrentGame { get; set; }
 
+    private double ProgressBarValue { get; set; } = 0;
+
     protected override async Task OnInitializedAsync()
     {
         await InitConfigData();
@@ -106,8 +110,11 @@
     private bool isLoading { get; set; } = true;
     private string? newTabName { get; set; } = "New Macro";
     private string? Message { get; set; } = "No Message";
+    private bool isCancel { get; set; }
     private AlertStyle MessageAlertStyle { get; set; } = AlertStyle.Info;
     private CancellationTokenSource cancellationTokenSource = null;
+
+
 
 
     private async Task InitConfigData()
@@ -158,7 +165,7 @@
 
             await Task.Delay(1000);
         }
-
+        
         var game = BmpSeer.Instance.Games.Values.FirstOrDefault();
 
         if (game == null)
@@ -169,10 +176,26 @@
         cancellationTokenSource = new CancellationTokenSource();
         CancellationToken cancellationToken = cancellationTokenSource.Token;
 
-        foreach (var item in model.macroList.Select((value, index) => new { index, value }))
+        int totalSteps = (model.repeat + 1) * model.macroList.Count();
+        int currentStep = 0;
+        isCancel = false;
+        this.ProgressBarValue = 0;
+
+        for (var i = 0; i <= model.repeat; i++)
         {
-            listComponent?.FocusOnRow(item.index);
-            await EventHelper.SendInput_Token(game, item.value, cancellationToken);
+            if (isCancel)
+            {
+                break;
+            }
+
+            foreach (var item in model.macroList.Select((value, index) => new { index, value }))
+            {
+                currentStep++;
+                listComponent?.FocusOnRow(item.index);
+                await EventHelper.SendInput_Token(game, item.value, cancellationToken);
+                this.ProgressBarValue = (int)((double)currentStep / totalSteps * 100);
+                StateHasChanged();
+            }
         }
     }
 
@@ -185,6 +208,7 @@
         if (cancellationTokenSource != null)
         {
             await cancellationTokenSource.CancelAsync();
+            isCancel = true;
             return;
         }
 

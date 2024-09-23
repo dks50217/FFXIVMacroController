@@ -22,6 +22,7 @@
             <RadzenDataGridColumn Property="@nameof(MacroModel.keyNumber)" Title="按鍵" Sortable="false" Filterable="false" Width="180px">
                 <Template Context="data">
                     <RadzenDropDown @bind-Value="data.keyNumber"
+                                    Disabled="isPlaying == true"
                                     AllowFiltering="true"
                                     TextProperty="@nameof(OptionModel.label)"
                                     ValueProperty="@nameof(OptionModel.value)"
@@ -33,6 +34,7 @@
                 <Template Context="data">
                     <RadzenDropDown @bind-Value="data.typeNumber"
                                     AllowFiltering="true"
+                                Disabled="isPlaying == true"
                                     TextProperty="@nameof(OptionModel.label)"
                                     ValueProperty="@nameof(OptionModel.value)"
                                     Data="TypeList"
@@ -41,17 +43,17 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Property="@nameof(MacroModel.sleep)" Title="執行後暫停">
                 <Template Context="data">
-                <RadzenNumeric ShowUpDown="false" TValue="int" Min="1" @bind-Value="data.sleep" />
+                <RadzenNumeric ShowUpDown="false" TValue="int" Min="1" @bind-Value="data.sleep" Disabled="isPlaying == true" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Property="@nameof(MacroModel.inputText)" Title="文字">
                 <Template Context="data">
-                    <RadzenTextBox @bind-Value="data.inputText" Style="width: 100%" aria-label="Default TextBox" />
+                <RadzenTextBox @bind-Value="data.inputText" Style="width: 100%" aria-label="Default TextBox" Disabled="isPlaying == true" />
                 </Template>
             </RadzenDataGridColumn>
         <RadzenDataGridColumn Width="50px" Context="data" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
             <Template Context="data">
-                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="@(args => DeleteRow(data))" @onclick:stopPropagation="true"></RadzenButton>
+                <RadzenButton Disabled="isPlaying == true" ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="@(args => DeleteRow(data))" @onclick:stopPropagation="true"></RadzenButton>
             </Template>
         </RadzenDataGridColumn>
         </Columns>
@@ -102,6 +104,7 @@
         var marco = new MacroModel()
         {
             type = Types.button,
+            typeNumber = (int)Types.button,
             key = Keys.D1,
             sleep = 3,
             keyNumber = (int)Keys.D1,

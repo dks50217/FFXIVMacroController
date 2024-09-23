@@ -44,15 +44,17 @@ namespace FFXIVMacroControllerWpfApp
             BmpSeer.Instance.SetupFirewall("FFXIVMacroController");
             BmpSeer.Instance.Start();
             BmpGrunt.Instance.Start();
-            BmpSeer.Instance.IsGotChatLog += OnGotChatLog;
+
+            //Task.Delay(2000);
+            //BmpSeer.Instance.IsGotChatLog += OnGotChatLog;
         }
 
         protected void OnGotChatLog(EnsembleNone seerEvent)
         {
-            seerEvent.ChatLog.ToList().ForEach(chat =>
+            foreach (var chat in seerEvent.ChatLog)
             {
-                this.logText.Text = chat;
-            });
+                this.logText.Text += chat + "\r\n";
+            }
         }
     }
 }

@@ -2,6 +2,7 @@
 @using System.IO
 @using System.Collections.ObjectModel
 @using FFXIVMacroController.Grunt
+@using FFXIVMacroController.Seer.Events
 @using Microsoft.JSInterop
 @using System.Text.Json
 @inject NavigationManager navigationManager
@@ -16,14 +17,14 @@
             <RadzenAlert Variant="Variant.Filled" AlertStyle="MessageAlertStyle" Size="AlertSize.Small" AllowClose="false">
                 @Message
             </RadzenAlert>
-            <RadzenPanel AllowCollapse="true">
+@*             <RadzenPanel AllowCollapse="true">
                 <ChildContent>
                     <RadzenCard class="rz-mt-4">
                         <RadzenAlert Variant="Variant.Filled" AlertStyle="AlertStyle.Info" AllowClose="false" Text="@CurrentGame?.GamePath"></RadzenAlert>
                         <RadzenAlert Variant="Variant.Filled" AlertStyle="AlertStyle.Info" AllowClose="false" Text="@CurrentGame?.PlayerName"></RadzenAlert>
                     </RadzenCard>
                </ChildContent>
-            </RadzenPanel>
+            </RadzenPanel> *@
         </RadzenStack>
     </RadzenHeader>
     <RadzenSidebar Responsive="false" Style="width: max-content">
@@ -48,7 +49,7 @@
                     <RadzenPanelMenuItem Click="((arg) => PanelMenuClick(item))">
                         <Template>
                             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
-                                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.ExtraSmall" />
+                                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.ExtraSmall" Click="@((args) => handleDelete(item))" />
                                 @item.name
                             </RadzenStack>
                         </Template>
@@ -61,10 +62,12 @@
         <div class="rz-p-4">
             @if (Category != null)
             {
-                <ListComponent Category="Category" 
+                <ListComponent @ref="listComponent"
+                               Category="Category" 
                                KeyList="keyList" 
                                TypeList="typeList"
                                CallPlay="handlePlay"
+                               CallCancel="handleCancel"
                                NameChanged="handleNameChanged"></ListComponent>
             }    
         </div>
@@ -83,6 +86,8 @@
     private CategoryModel? Category { get; set; }
 
     private int selectedIndex = 0;
+
+    private ListComponent? listComponent { get; set; }
 
     private Game? CurrentGame { get; set; }
 
@@ -163,7 +168,27 @@
 
         cancellationTokenSource = new CancellationTokenSource();
         CancellationToken cancellationToken = cancellationTokenSource.Token;
-        await EventHelper.SendInput_Token(game, model.macroList, cancellationToken);
+
+        foreach (var item in model.macroList.Select((value, index) => new { index, value }))
+        {
+            listComponent?.FocusOnRow(item.index);
+            await EventHelper.SendInput_Token(game, item.value, cancellationToken);
+        }
+    }
+
+    private async Task handleCancel(CategoryModel model)
+    {
+        BmpGrunt.Instance.Stop();
+
+        BmpSeer.Instance.Stop();
+
+        if (cancellationTokenSource != null)
+        {
+            await cancellationTokenSource.CancelAsync();
+            return;
+        }
+
+        return;
     }
 
     private void handleNameChanged(ChangeEventArgs args)
@@ -189,16 +214,19 @@
 
     private void handleAdd()
     {
-        var lastItem = this.rootModel?.categoryList.Last();
+        var cloneItem = (this.rootModel?.categoryList?.Any() == true)
+            ? (this.rootModel.categoryList.Last().Clone() as CategoryModel) ?? new CategoryModel()
+            : new CategoryModel
+                {
+                    id = Guid.NewGuid().ToString(),
+                    category = "action",
+                    repeat = 1,
+                    macroList = new List<MacroModel>()
+                };
 
-        if (lastItem != null)
-        {
-            var cloneItem = lastItem.Clone() as CategoryModel;
+        cloneItem.name = this.newTabName ?? "default";
 
-            cloneItem.name = this.newTabName;
-
-            this.rootModel?.categoryList.Add(cloneItem!);
-        }
+        this.rootModel?.categoryList.Add(cloneItem);
 
         tabs?.Reload();
     }

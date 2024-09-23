@@ -11,6 +11,7 @@ using System.Windows.Shapes;
 using FFXIVMacroController.Grunt;
 using FFXIVMacroController.Pigeonhole;
 using FFXIVMacroController.Seer;
+using FFXIVMacroController.Seer.Events;
 using Microsoft.AspNetCore.Components.WebView;
 using Microsoft.Extensions.DependencyInjection;
 using Radzen;
@@ -43,6 +44,15 @@ namespace FFXIVMacroControllerWpfApp
             BmpSeer.Instance.SetupFirewall("FFXIVMacroController");
             BmpSeer.Instance.Start();
             BmpGrunt.Instance.Start();
+            BmpSeer.Instance.IsGotChatLog += OnGotChatLog;
+        }
+
+        protected void OnGotChatLog(EnsembleNone seerEvent)
+        {
+            seerEvent.ChatLog.ToList().ForEach(chat =>
+            {
+                this.logText.Text = chat;
+            });
         }
     }
 }

@@ -9,9 +9,9 @@
             <RadzenFormField Text="巨集名稱" Variant="Variant.Outlined">
                 <RadzenTextBox Style="width: 50%" Value="@Category.name" @oninput=NameChanged />
             </RadzenFormField>
-            <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Click="@InsertRow" />
-            <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="play_arrow" Click="@handleClickPlay" />
-            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="cancel" Click="CallCancel" />
+            <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Click="@InsertRow" Disabled="isPlaying == true" />
+            <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="@GetButtonIcon()" Click="@handleClickPlay" Disabled="isPlaying == true" />
+            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="cancel" Click="@handleClickStop" Disabled="isPlaying == false" />
             <RadzenFormField Text="重複次數" Variant="Variant.Outlined">
                 <RadzenNumeric @bind-Value="@Category.repeat" Min="1" />
             </RadzenFormField>
@@ -63,6 +63,7 @@
     private ObservableCollection<MacroModel>? marcoList;
     private MacroModel? draggedItem;
     private IList<MacroModel>? selectedMacros;
+    private bool isPlaying = false;
 
     [Parameter]
     public CategoryModel? Category { get; set; }
@@ -80,7 +81,7 @@
     public EventCallback<CategoryModel> CallPlay { get; set; }
 
     [Parameter]
-    public EventCallback CallCancel { get; set; }
+    public EventCallback<CategoryModel> CallCancel { get; set; }
 
     DataGridEditMode editMode = DataGridEditMode.Single;
 
@@ -112,6 +113,7 @@
         this.Category.macroList = this.marcoList.ToList();
     }
 
+
     protected async Task DeleteRow(MacroModel macro)
     {
         this.marcoList?.Remove(macro);
@@ -119,15 +121,29 @@
         this.Category.macroList = this.marcoList.ToList();
     }
 
+    private string GetButtonIcon()
+    {
+        return isPlaying ? "hourglass_empty" : "play_arrow";
+    }
+
     protected async Task handleClickPlay()
     {
+        isPlaying = true;
         await CallPlay.InvokeAsync(this.Category);
+        isPlaying = false;
+    }
+
+    protected async Task handleClickStop()
+    {
+        await CallCancel.InvokeAsync(this.Category);
+        isPlaying = false;
     }
 
     private void RowRender(RowRenderEventArgs<MacroModel> args)
     {
         args.Attributes.Add("title", "Drag row to reorder");
-        args.Attributes.Add("style", "cursor:grab");
+        string styles = "cursor: grab;";
+        args.Attributes.Add("style", styles);
         args.Attributes.Add("draggable", "true");
         args.Attributes.Add("ondragover", "event.preventDefault();event.target.closest('.rz-data-row').classList.add('my-class')");
         args.Attributes.Add("ondragleave", "event.target.closest('.rz-data-row').classList.remove('my-class')");
@@ -141,6 +157,32 @@
             this.Category.macroList = marcoList.ToList();
             JSRuntime.InvokeVoidAsync("eval", $"document.querySelector('.my-class').classList.remove('my-class')");
         }));
+    }
+
+    public async Task FocusOnRow(int index)
+    {
+        var orderToFocus = marcoList?[index];
+
+        if (orderToFocus != null)
+        {
+            await ordersGrid.SelectRow(orderToFocus);
+            await JSRuntime.InvokeVoidAsync("scrollToSelectedRow");
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                window.scrollToSelectedRow = function() {
+                    var selectedRow = document.querySelector('.rz-state-highlight');
+                    if (selectedRow) {
+                        selectedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            ");
+        }
     }
 }
 

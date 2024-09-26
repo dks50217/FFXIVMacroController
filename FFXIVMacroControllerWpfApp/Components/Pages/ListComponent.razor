@@ -7,13 +7,13 @@
     <HeaderTemplate>
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="10">
             <RadzenFormField Text="巨集名稱" Variant="Variant.Outlined">
-                <RadzenTextBox Style="width: 50%" Value="@Category.name" @oninput=NameChanged />
+                <RadzenTextBox Style="width: 50%" Value="@Category.name" @oninput=NameChanged Disabled="isPlaying == true" />
             </RadzenFormField>
             <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Click="@InsertRow" Disabled="isPlaying == true" />
             <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="@GetButtonIcon()" Click="@handleClickPlay" Disabled="isPlaying == true" />
             <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="cancel" Click="@handleClickStop" Disabled="isPlaying == false" />
             <RadzenFormField Text="重複次數" Variant="Variant.Outlined">
-                <RadzenNumeric @bind-Value="@Category.repeat" Min="1" />
+                <RadzenNumeric @bind-Value="@Category.repeat" Min="1" Disabled="isPlaying == true" />
             </RadzenFormField>
         </RadzenStack>
     </HeaderTemplate>

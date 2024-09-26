@@ -6,8 +6,15 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <AssemblyVersion></AssemblyVersion>
+    <FileVersion></FileVersion>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <AssemblyVersion>1.0.0.1</AssemblyVersion>
+    <FileVersion>1.0.0.1</FileVersion>
+  </PropertyGroup>
+  
   <ItemGroup>
     <Content Include="27675310.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -16,6 +23,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="8.0.82" />
+    <PackageReference Include="Octokit" Version="13.0.1" />
     <PackageReference Include="Radzen.Blazor" Version="5.2.0" />
   </ItemGroup>
 

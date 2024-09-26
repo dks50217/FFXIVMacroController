@@ -5,6 +5,7 @@
 @using FFXIVMacroController.Seer.Events
 @using Microsoft.JSInterop
 @using System.Text.Json
+@using Radzen.Blazor.Rendering
 @inject NavigationManager navigationManager
 @inject IJSRuntime JSRuntime
 @inject ContextMenuService contextMenuService
@@ -12,19 +13,33 @@
 
 <RadzenLayout style="position: relative;grid-template-areas: 'rz-sidebar rz-header' 'rz-sidebar rz-body'">
     <RadzenHeader>
-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="5">
-            <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
-@*             <RadzenAlert Variant="Variant.Filled" AlertStyle="MessageAlertStyle" Size="AlertSize.Small" AllowClose="false">
-                @Message
-            </RadzenAlert> *@
-@*             <RadzenPanel AllowCollapse="true">
-                <ChildContent>
-                    <RadzenCard class="rz-mt-4">
-                        <RadzenAlert Variant="Variant.Filled" AlertStyle="AlertStyle.Info" AllowClose="false" Text="@CurrentGame?.GamePath"></RadzenAlert>
-                        <RadzenAlert Variant="Variant.Filled" AlertStyle="AlertStyle.Info" AllowClose="false" Text="@CurrentGame?.PlayerName"></RadzenAlert>
-                    </RadzenCard>
-               </ChildContent>
-            </RadzenPanel> *@
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="12px">
+            <RadzenButton @ref="infoButton" Style="margin:5px;" ButtonStyle="ButtonStyle.Info" Text="基本資訊" Icon="info" Click="@(args => infoPopup.ToggleAsync(infoButton.Element))" />
+
+            <Popup @ref=infoPopup Style="display:none;position:absolute;height:300px;width:600px;padding:5px;border:var(--rz-panel-border);background-color:var(--rz-panel-background-color);">
+                    <RadzenColumn Size="12" SizeMD="4">
+                        <RadzenCard>
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">遊戲路徑</RadzenText>
+                            <RadzenTextBox Style="width: 100%" Value="@CurrentGame?.GamePath" Disabled=true />
+                        </RadzenCard>
+                    </RadzenColumn>
+
+                    <hr style="border: none; background-color: var(--rz-base-600); height: 1px; margin: 0;" />
+
+                    <RadzenColumn Size="12" SizeMD="4">
+                        <RadzenCard>
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">角色名稱</RadzenText>
+                        <RadzenTextBox Style="width: 100%" Value="@CurrentGame?.PlayerName" Disabled=true />
+                        </RadzenCard>
+                    </RadzenColumn>
+            </Popup>
+
+            <RadzenButton @ref="logButton" Style="margin:5px;" ButtonStyle="ButtonStyle.Dark" Text="遊戲紀錄" Icon="contract" Click="@(args => logPopup.ToggleAsync(logButton.Element))" />
+
+            <Popup Close="@OnClose" Lazy=true @ref=logPopup Style="display:none;position:absolute;height:300px;width:600px;padding:5px;border:var(--rz-panel-border);background-color:var(--rz-panel-background-color);">
+                <RadzenTextArea Style="width: 100%" Value="@LogText" Disabled="true" />
+            </Popup>
+
         </RadzenStack>
     </RadzenHeader>
     <RadzenSidebar Responsive="false" Style="width: max-content">
@@ -38,8 +53,8 @@
                 <RadzenPanelMenuItem>
                     <Template>
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
-                            <RadzenButton Click=handleAdd Icon="add" ButtonStyle="ButtonStyle.Success" />
-                            <RadzenButton Click=handleSave Icon="save" ButtonStyle="ButtonStyle.Success" />
+                            <RadzenButton Click=handleAdd Icon="add" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" />
+                            <RadzenButton Click=handleSave Icon="save" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" />
                         </RadzenStack>
                     </Template>
                 </RadzenPanelMenuItem>
@@ -62,8 +77,11 @@
         <div class="rz-p-4">
             @if (Category != null)
             {
-                <RadzenProgressBar @bind-Value="@ProgressBarValue" />
-                
+                <RadzenProgressBar @bind-Value="@ProgressBarValue">
+                    <Template>
+                        <RadzenText TextStyle="TextStyle.Subtitle2"><strong>@ProgressBarValue% @(!string.IsNullOrEmpty(CountLeft) ? $"({CountLeft})" : "")</strong></RadzenText>
+                    </Template>
+                </RadzenProgressBar>
                 <ListComponent @ref="listComponent"
                                Category="Category" 
                                KeyList="keyList" 
@@ -95,6 +113,14 @@
 
     private double ProgressBarValue { get; set; } = 0;
 
+    private Popup? infoPopup;
+
+    private RadzenButton? infoButton;
+
+    private Popup? logPopup;
+
+    private RadzenButton? logButton;
+
     protected override async Task OnInitializedAsync()
     {
         await InitConfigData();
@@ -113,9 +139,8 @@
     private bool isCancel { get; set; }
     private AlertStyle MessageAlertStyle { get; set; } = AlertStyle.Info;
     private CancellationTokenSource cancellationTokenSource = null;
-
-
-
+    private string? CountLeft { get; set; }
+    private string? LogText { get; set; }
 
     private async Task InitConfigData()
     {
@@ -143,6 +168,16 @@
         await Task.Delay(1000);
 
         CurrentGame = BmpSeer.Instance.Games.Values.FirstOrDefault();
+
+        BmpSeer.Instance.IsGotChatLog += OnGotChatLog;
+    }
+
+    protected void OnGotChatLog(EnsembleNone seerEvent)
+    {
+        foreach (var chat in seerEvent.ChatLog)
+        {
+            LogText += chat + "\r\n";
+        }
     }
 
     protected override void OnParametersSet()
@@ -155,6 +190,11 @@
         this.Category = model;
     }
 
+    private async Task OnClose()
+    {
+       
+    }
+
     private async Task handlePlay(CategoryModel model)
     {
         if (!BmpSeer.Instance.Started)
@@ -165,7 +205,7 @@
 
             await Task.Delay(1000);
         }
-        
+
         var game = BmpSeer.Instance.Games.Values.FirstOrDefault();
 
         if (game == null)
@@ -187,6 +227,8 @@
             {
                 break;
             }
+
+            CountLeft = $"{i}/{model.repeat}";
 
             foreach (var item in model.macroList.Select((value, index) => new { index, value }))
             {

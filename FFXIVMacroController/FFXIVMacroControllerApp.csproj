@@ -16,8 +16,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <AssemblyVersion>1.0.0.1</AssemblyVersion>
-    <FileVersion>1.0.0.1</FileVersion>
+    <AssemblyVersion>1.0.0.3</AssemblyVersion>
+    <FileVersion>1.0.0.3</FileVersion>
     <PackageIcon></PackageIcon>
     <ApplicationIcon>27675310.ico</ApplicationIcon>
   </PropertyGroup>

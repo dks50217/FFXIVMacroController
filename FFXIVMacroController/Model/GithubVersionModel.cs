@@ -8,7 +8,7 @@ namespace FFXIVMacroControllerApp.Model
 {
     public class GithubVersionModel
     {
-        public required Version Version { get; set; }
+        public required string Version { get; set; }
         public required string DownloadURL { get; set; }
     }
 }

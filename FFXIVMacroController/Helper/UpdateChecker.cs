@@ -33,7 +33,7 @@ namespace FFXIVMacroControllerApp.Helper
                 return;
             }
 
-            if (remoteItem.Version.CompareTo(localVersion) > 0)
+            if (remoteItem.Version.CompareTo($"v{localVersion}") > 0)
             {
                 var result = MessageBox.Show("有新版本可用，是否下載更新？", "更新提示", MessageBoxButton.YesNo);
 
@@ -72,10 +72,12 @@ namespace FFXIVMacroControllerApp.Helper
 
                     Console.WriteLine($"Latest Release Tag: {latestRelease.TagName}");
 
+                    var downloadUrl = latestRelease.Assets.First().BrowserDownloadUrl;
+
                     var result = new GithubVersionModel
                     {
-                        DownloadURL = latestRelease.AssetsUrl,
-                        Version = new Version(latestRelease.TagName)
+                        DownloadURL = downloadUrl,
+                        Version =latestRelease.TagName
                     };
 
                     return result;

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FFXIVMacroControllerWpfApp.Helper
+namespace FFXIVMacroControllerApp.Helper
 {
-    using FFXIVMacroControllerWpfApp.Model;
+    using FFXIVMacroControllerApp.Model;
     using Octokit;
     using System;
     using System.Diagnostics;

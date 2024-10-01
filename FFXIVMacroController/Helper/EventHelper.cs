@@ -8,11 +8,10 @@ using FFXIVMacroController.Quotidian.Enums;
 using FFXIVMacroController.Quotidian.Structs;
 using FFXIVMacroController.Seer;
 using FFXIVMacroController.Grunt;
-using FFXIVMacroController.Model;
+using FFXIVMacroControllerApp.Model;
 using FFXIVMacroController.Seer.Events;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components.Forms;
-//using static FFXIVMacroController.Helper.ClickOnPointTool;
 using System.Text.RegularExpressions;
 using System.Drawing;
 using Newtonsoft.Json.Linq;
@@ -51,9 +50,6 @@ namespace FFXIVMacroController.Helper
                     case Types.button:
                         if (game != null && !await game.SendKeyArray(item.key)) Console.WriteLine("Failed to call game pid " + game.Pid + " to input keys :(");
                         break;
-                    //case Types.mouse:
-                    //    ClickOnPointTool.ClickOnPoint(game.Process.MainWindowHandle, item.coordinateX, item.coordinateY);
-                    //    break;
                     case Types.text:
 
                         string[] lines = item.inputText.Split(
@@ -74,60 +70,51 @@ namespace FFXIVMacroController.Helper
             }
         }
 
-        public static async Task SendInput_Token(Game game, List<MacroModel> macroList, CancellationToken cancellationToken)
+        public static async Task SendInput_Token(Game game, MacroModel macro, CancellationToken cancellationToken)
         {
             Console.WriteLine("Trying to doot on game pid " + game.Pid + ".");
 
             bool isStop = !BmpSeer.Instance.Started || !BmpGrunt.Instance.Started;
 
-            foreach (var item in macroList)
+
+            macro.key = (Keys)macro.keyNumber;
+
+            Console.WriteLine($"Key: {macro.key}");
+            var s = TimeSpan.FromSeconds(macro.sleep).TotalMilliseconds;
+            var sleep = Convert.ToInt32(s);
+            var delayTask = Task.Delay(sleep, cancellationToken);
+
+            switch (macro.type)
             {
-                item.key = (Keys)item.keyNumber;
+                case Types.button:
+                    if (game != null && !await game.SendKeyArray(macro.key))
+                    {
+                        Console.WriteLine("Failed to call game pid " + game.Pid + " to input keys :(");
+                    }
+                    break;
+                case Types.text:
+                    string[] lines = macro.inputText.Split(
+                        new string[] { "\r\n", "\r", "\n" },
+                        StringSplitOptions.None
+                    );
 
-                Console.WriteLine($"Key: {item.key}");
-                var s = TimeSpan.FromSeconds(item.sleep).TotalMilliseconds;
-                item.sleep = Convert.ToInt32(s);
+                    foreach (string line in lines)
+                    {
+                        await Task.WhenAny(delayTask, game.SendLyricLine(line));
 
-                var delayTask = Task.Delay(item.sleep, cancellationToken);
-
-                switch (item.type)
-                {
-                    case Types.button:
-                        if (game != null && !await game.SendKeyArray(item.key))
+                        if (cancellationToken.IsCancellationRequested && isStop)
                         {
-                            Console.WriteLine("Failed to call game pid " + game.Pid + " to input keys :(");
-                        }
-                        break;
-                    case Types.text:
-                        string[] lines = item.inputText.Split(
-                            new string[] { "\r\n", "\r", "\n" },
-                            StringSplitOptions.None
-                        );
-
-                        foreach (string line in lines)
-                        {
-                            await Task.WhenAny(delayTask, game.SendLyricLine(line));
-
-                            if (cancellationToken.IsCancellationRequested && isStop)
-                            {
-                                Console.WriteLine($"已經立即暫停!");
-                                return; // Exit the method if cancellation is requested
-                            }
-
-                            await Task.Delay(item.sleep);
+                            Console.WriteLine($"已經立即暫停!");
+                            return;
                         }
 
-                        break;
-                }
+                        await Task.Delay(macro.sleep);
+                    }
 
-                await Task.WhenAny(delayTask);
-
-                if (cancellationToken.IsCancellationRequested && isStop)
-                {
-                    Console.WriteLine($"已經立即暫停!");
-                    return;
-                }
+                    break;
             }
+
+            await Task.WhenAny(delayTask);
         }
 
         public static MacroRootModel ConvertJsonToList(string jsonText)
@@ -135,7 +122,7 @@ namespace FFXIVMacroController.Helper
             JsonDocument jsonDocument = JsonDocument.Parse(jsonText);
             MacroRootModel rootModel = new MacroRootModel();
 
-            rootModel.rootID =  jsonDocument.RootElement.GetProperty("rootID").GetString();
+            rootModel.rootID = jsonDocument.RootElement.GetProperty("rootID").GetString();
             rootModel.categoryList = new List<CategoryModel>();
             var categoryList = jsonDocument.RootElement.GetProperty("categoryList");
 
@@ -145,10 +132,10 @@ namespace FFXIVMacroController.Helper
 
                 categoryModel.id = item.GetProperty("id").GetString();
                 categoryModel.name = item.GetProperty("name").GetString();
-                categoryModel.category  = item.GetProperty("category").GetString();
+                categoryModel.category = item.GetProperty("category").GetString();
                 categoryModel.repeat = item.GetProperty("repeat").GetInt16();
                 categoryModel.macroList = new List<MacroModel>();
-                
+
                 var macroList = item.GetProperty("macroList");
 
                 foreach (var subItem in macroList.EnumerateArray())
@@ -160,6 +147,7 @@ namespace FFXIVMacroController.Helper
                     if (Enum.TryParse(typeStr, out Types type))
                     {
                         model.type = type;
+                        model.typeNumber = (int)type;
                     }
 
                     //string commandStr = subItem.GetProperty("key").GetString();
@@ -186,6 +174,9 @@ namespace FFXIVMacroController.Helper
                     model.coordinateY = coordinateY;
 
                     model.sleep = subItem.GetProperty("sleep").GetInt16();
+
+                    model.group = categoryModel.id;
+
                     categoryModel.macroList.Add(model);
                 }
 

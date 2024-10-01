@@ -13,12 +13,14 @@ using FFXIVMacroController.Grunt;
 using FFXIVMacroController.Pigeonhole;
 using FFXIVMacroController.Seer;
 using FFXIVMacroController.Seer.Events;
-using FFXIVMacroControllerWpfApp.Helper;
+using FFXIVMacroControllerApp.Helper;
 using Microsoft.AspNetCore.Components.WebView;
+using Microsoft.AspNetCore.Components.WebView.Wpf;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Radzen;
 
-namespace FFXIVMacroControllerWpfApp
+namespace FFXIVMacroControllerApp
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -42,6 +44,11 @@ namespace FFXIVMacroControllerWpfApp
             serviceCollection.AddWpfBlazorWebView();
             serviceCollection.AddRadzenComponents();
             serviceCollection.AddRadzenCookieThemeService();
+
+            //serviceCollection.AddSingleton<IFileProvider>(provider =>
+            //{
+            //    return new ManifestEmbeddedFileProvider(Assembly.GetExecutingAssembly(), "wwwroot");
+            //});
 
             Resources.Add("services", serviceCollection.BuildServiceProvider());
 

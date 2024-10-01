@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FFXIVMacroControllerWpfApp.Model
+namespace FFXIVMacroControllerApp.Model
 {
     public class GithubVersionModel
     {

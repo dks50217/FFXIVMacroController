@@ -5,21 +5,51 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:blazor="clr-namespace:Microsoft.AspNetCore.Components.WebView.Wpf;assembly=Microsoft.AspNetCore.Components.WebView.Wpf"
         xmlns:components="clr-namespace:FFXIVMacroControllerApp.Components.Pages"
+        xmlns:WindowsShell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         mc:Ignorable="d"
         Icon="27675310.ico"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
         Title="FFXIVMacroController" Height="600" Width="1200">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    
+    <WindowsShell:WindowChrome.WindowChrome>
+        <WindowsShell:WindowChrome
+            CaptionHeight="5"
+            ResizeBorderThickness="5"
+            GlassFrameThickness="0"
+            UseAeroCaptionButtons="False" />
+    </WindowsShell:WindowChrome.WindowChrome>
 
-        <blazor:BlazorWebView Name="blazorWebView" Grid.Row="0" HostPage="wwwroot\index.html" Services="{DynamicResource services}">
-            <blazor:BlazorWebView.RootComponents>
-                <blazor:RootComponent Selector="#app" ComponentType="{x:Type components:App}" />
-            </blazor:BlazorWebView.RootComponents>
-        </blazor:BlazorWebView>
+    <Border CornerRadius="10" Background="White" BorderBrush="Gray" BorderThickness="1">
+        <Grid>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5">
+                <Image Source="27675310.ico" Width="16" Height="16" Margin="0,0,5,0" />
+                <TextBlock Text="FFXIVMacroController" VerticalAlignment="Center" FontWeight="Bold" />
+            </StackPanel>
 
-        <Label Grid.Row="1" Name="VersionLabel" Height="30" />
-    </Grid>
+            <Rectangle Fill="Transparent" Height="40" VerticalAlignment="Top" MouseDown="TitleBar_MouseDown" Panel.ZIndex="0" />
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="5" Panel.ZIndex="1">
+                <Button Width="30" Height="30" Click="Minimize_Click">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="14" Text="&#xE921;" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Button>
+                <Button Width="30" Height="30" Click="Maximize_Click">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="14" Text="&#xE922;" HorizontalAlignment="Center" VerticalAlignment="Center" Name="MaximizeTextBlock"/>
+                </Button>
+                <Button Width="30" Height="30" Click="Close_Click" Background="Red" Foreground="White">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="14" Text="&#xE8BB;" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Button>
+            </StackPanel>
+
+            <blazor:BlazorWebView Name="blazorWebView" HostPage="wwwroot\index.html" Services="{DynamicResource services}" Margin="0,40,0,30">
+                <blazor:BlazorWebView.RootComponents>
+                    <blazor:RootComponent Selector="#app" ComponentType="{x:Type components:App}" />
+                </blazor:BlazorWebView.RootComponents>
+            </blazor:BlazorWebView>
+
+            <Label Name="VersionLabel" Height="30" VerticalAlignment="Bottom" />
+        </Grid>
+    </Border>
+    
 </Window>

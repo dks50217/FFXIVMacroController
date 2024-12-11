@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.ComponentModel;
+using System.Reflection;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -34,7 +35,7 @@ namespace FFXIVMacroControllerApp
 
             InitializeComponent();
 
-            CheckForUpdate();
+            //Task.Run(async () => await CheckForUpdate());
 
             var version = Assembly.GetExecutingAssembly().GetName().Version;
             VersionLabel.Content = $"Version: {version}";
@@ -55,7 +56,7 @@ namespace FFXIVMacroControllerApp
             InitializeApp();
         }
 
-        private async void CheckForUpdate()
+        private async Task CheckForUpdate()
         {
             await _updateChecker.CheckForUpdateAsync();
         }
@@ -66,6 +67,25 @@ namespace FFXIVMacroControllerApp
             BmpSeer.Instance.SetupFirewall("FFXIVMacroController");
             BmpSeer.Instance.Start();
             BmpGrunt.Instance.Start();
+        }
+
+        private void Minimize_Click(object sender, RoutedEventArgs e) => this.WindowState = WindowState.Minimized;
+
+        private void Maximize_Click(object sender, RoutedEventArgs e) 
+        { 
+            this.WindowState = this.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+            this.MaximizeTextBlock.Text = this.WindowState == WindowState.Maximized ? "\uE923" : "\uE922";
+        }
+           
+
+        private void Close_Click(object sender, RoutedEventArgs e) => this.Close();
+
+        private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                this.DragMove();
+            }
         }
     }
 }

@@ -44,10 +44,6 @@ namespace FFXIVMacroControllerApp.Helper
                     DownloadAndInstallUpdate();
                 }
             }
-            else
-            {
-                MessageBox.Show("已是最新版本。");
-            }
         }
 
         private Version? GetLocalVersion()

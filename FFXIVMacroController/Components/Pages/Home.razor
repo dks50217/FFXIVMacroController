@@ -11,6 +11,8 @@
 @inject ContextMenuService contextMenuService
 @inject DialogService dialogService
 
+<RadzenDialog />
+
 <RadzenLayout style="position: relative;grid-template-areas: 'rz-sidebar rz-header' 'rz-sidebar rz-body'">
     <RadzenHeader>
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="12px">
@@ -34,11 +36,11 @@
                     </RadzenColumn>
             </Popup>
 
-            <RadzenButton @ref="logButton" Style="margin:5px;" ButtonStyle="ButtonStyle.Dark" Text="遊戲紀錄" Icon="contract" Click="@(args => logPopup.ToggleAsync(logButton.Element))" />
+            <RadzenButton @ref="logButton" Style="margin:5px;" ButtonStyle="ButtonStyle.Dark" Text="遊戲紀錄" Icon="contract" Click="handleOpenLog" />
 
-            <Popup Close="@OnClose" Lazy=true @ref=logPopup Style="display:none;position:absolute;height:300px;width:600px;padding:5px;border:var(--rz-panel-border);background-color:var(--rz-panel-background-color);">
+          @*   <Popup Close="@OnClose" Lazy=true @ref=logPopup Style="display:none;position:absolute;height:300px;width:600px;padding:5px;border:var(--rz-panel-border);background-color:var(--rz-panel-background-color);">
                 <RadzenTextArea Style="width: 100%" Value="@LogText" Disabled="true" />
-            </Popup>
+            </Popup> *@
 
         </RadzenStack>
     </RadzenHeader>
@@ -177,6 +179,13 @@
         foreach (var chat in seerEvent.ChatLog)
         {
             LogText += chat + "\r\n";
+
+            var lines = LogText.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (lines.Length > 500)
+            {
+                LogText = string.Join("\r\n", lines.Skip(lines.Length - 500)) + "\r\n";
+            }
         }
     }
 
@@ -192,7 +201,21 @@
 
     private async Task OnClose()
     {
-       
+
+    }
+
+    private async Task handleOpenLog()
+    {
+        var result = await dialogService.OpenAsync("Log", ds =>
+    @<RadzenStack Gap="1.5rem">
+        <RadzenTextArea Style="width: 100%;" Rows="10" Value="@LogText" Disabled="true" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenStack Orientation="Orientation.Horizontal">
+                <RadzenButton Text="Ok" Click="() => ds.Close(true)" Style="width: 80px;" />
+            </RadzenStack>
+            <RadzenButton Text="Refresh" Click="(() => { ds.Refresh(); })" ButtonStyle="ButtonStyle.Light" />
+        </RadzenStack>
+    </RadzenStack>);
     }
 
     private async Task handlePlay(CategoryModel model)
@@ -269,12 +292,13 @@
             string json = JsonSerializer.Serialize(this.rootModel);
             await File.WriteAllTextAsync(AppDomain.CurrentDomain.BaseDirectory + @"\config.json", json);
             MessageAlertStyle = AlertStyle.Success;
-            Message = "儲存成功";
+            await dialogService.Alert("儲存成功", "Message", new AlertOptions() { OkButtonText = "OK" });
         }
         catch (Exception ex)
         {
             MessageAlertStyle = AlertStyle.Danger;
             Message = ex.Message;
+            await dialogService.Alert(Message, "Message", new AlertOptions() { OkButtonText = "OK" });
         }
     }
 
@@ -309,3 +333,4 @@
         background-color :red;
     }
 </style>
+

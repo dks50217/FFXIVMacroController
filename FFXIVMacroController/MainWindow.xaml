@@ -10,7 +10,7 @@
         Icon="27675310.ico"
         WindowStyle="None"
         AllowsTransparency="True"
-        Background="Transparent"
+        Background="#80FFFFFF"
         Title="FFXIVMacroController" Height="600" Width="1200">
     
     <WindowsShell:WindowChrome.WindowChrome>
@@ -21,7 +21,7 @@
             UseAeroCaptionButtons="False" />
     </WindowsShell:WindowChrome.WindowChrome>
 
-    <Border CornerRadius="10" Background="White" BorderBrush="Gray" BorderThickness="1">
+    <Border CornerRadius="10" Background="#80FFFFFF" BorderBrush="Gray" BorderThickness="1">
         <Grid>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5">
                 <Image Source="27675310.ico" Width="16" Height="16" Margin="0,0,5,0" />

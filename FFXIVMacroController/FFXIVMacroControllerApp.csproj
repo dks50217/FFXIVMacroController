@@ -16,8 +16,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <AssemblyVersion>1.0.0.3</AssemblyVersion>
-    <FileVersion>1.0.0.3</FileVersion>
+    <AssemblyVersion>1.0.0.4</AssemblyVersion>
+    <FileVersion>1.0.0.4</FileVersion>
     <PackageIcon></PackageIcon>
     <ApplicationIcon>27675310.ico</ApplicationIcon>
   </PropertyGroup>
@@ -55,6 +55,9 @@
     <None Update="27675310.ico">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
+    </None>
+    <None Update="update.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

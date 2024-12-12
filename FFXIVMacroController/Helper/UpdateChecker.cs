@@ -10,9 +10,11 @@ namespace FFXIVMacroControllerApp.Helper
     using Octokit;
     using System;
     using System.Diagnostics;
+    using System.IO;
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Reflection;
+    using System.Security.Policy;
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using System.Windows;
@@ -20,6 +22,7 @@ namespace FFXIVMacroControllerApp.Helper
     public class UpdateChecker
     {
         private string? DownloadUrl { get; set; }
+        private string? DownloadVersion { get; set; }
 
         public async Task CheckForUpdateAsync()
         {
@@ -40,8 +43,9 @@ namespace FFXIVMacroControllerApp.Helper
                 if (result == MessageBoxResult.Yes)
                 {
                     DownloadUrl = remoteItem.DownloadURL;
+                    DownloadVersion = remoteItem.Version;
 
-                    DownloadAndInstallUpdate();
+                    await DownloadAndInstallUpdate();
                 }
             }
         }
@@ -73,7 +77,7 @@ namespace FFXIVMacroControllerApp.Helper
                     var result = new GithubVersionModel
                     {
                         DownloadURL = downloadUrl,
-                        Version =latestRelease.TagName
+                        Version = latestRelease.TagName
                     };
 
                     return result;
@@ -91,22 +95,42 @@ namespace FFXIVMacroControllerApp.Helper
             }
         }
 
-        private void DownloadAndInstallUpdate()
+        private async Task DownloadAndInstallUpdate()
         {
             try
             {
-                var process = new Process
+                using var httpClient = new HttpClient();
+
+                using var response = await httpClient.GetAsync(DownloadUrl, HttpCompletionOption.ResponseHeadersRead);
+
+                if (!response.IsSuccessStatusCode)
                 {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = DownloadUrl,
-                        UseShellExecute = true
-                    }
-                };
+                    Console.WriteLine($"下載失敗: {response.StatusCode}");
+                    return;
+                }
 
-                process.Start();
+                using var stream = await response.Content.ReadAsStreamAsync();
+                var fileName = $"FFXIVMacroController_{DownloadVersion}.zip";
+                var targetFilePath = Path.Combine(Directory.GetCurrentDirectory(), fileName);
+                using var fileStream = new FileStream(targetFilePath, System.IO.FileMode.Create, FileAccess.Write, FileShare.None);
+                await stream.CopyToAsync(fileStream);
 
-                System.Windows.Application.Current.Shutdown();
+                string scriptPath = "update.ps1";
+                string arguments = $"-File \"{scriptPath}\"";
+
+                // 啟動 PowerShell 腳本
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = arguments,
+                    UseShellExecute = false,
+                    CreateNoWindow = false
+                });
+
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    System.Windows.Application.Current.Shutdown();
+                });
             }
             catch (Exception ex)
             {

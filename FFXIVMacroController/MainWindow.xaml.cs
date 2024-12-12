@@ -15,6 +15,7 @@ using FFXIVMacroController.Pigeonhole;
 using FFXIVMacroController.Seer;
 using FFXIVMacroController.Seer.Events;
 using FFXIVMacroControllerApp.Helper;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.WebView;
 using Microsoft.AspNetCore.Components.WebView.Wpf;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,7 +36,7 @@ namespace FFXIVMacroControllerApp
 
             InitializeComponent();
 
-            //Task.Run(async () => await CheckForUpdate());
+            Task.Run(async () => await CheckForUpdate());
 
             var version = Assembly.GetExecutingAssembly().GetName().Version;
             VersionLabel.Content = $"Version: {version}";
@@ -43,6 +44,9 @@ namespace FFXIVMacroControllerApp
             // DI
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddWpfBlazorWebView();
+#if DEBUG
+            serviceCollection.AddBlazorWebViewDeveloperTools();
+#endif
             serviceCollection.AddRadzenComponents();
             serviceCollection.AddRadzenCookieThemeService();
 

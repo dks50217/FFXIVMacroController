@@ -3,6 +3,7 @@
 @using System.Collections.ObjectModel
 @using FFXIVMacroController.Grunt
 @using FFXIVMacroController.Seer.Events
+@using FFXIVMacroControllerApp.Service
 @using Microsoft.JSInterop
 @using System.Text.Json
 @using Radzen.Blazor.Rendering
@@ -10,8 +11,12 @@
 @inject IJSRuntime JSRuntime
 @inject ContextMenuService contextMenuService
 @inject DialogService dialogService
+@inject IUpdateService UpdateService
+@inject IAutoClickService AutoClickService
 
 <RadzenDialog />
+
+
 
 <RadzenLayout style="position: relative;grid-template-areas: 'rz-sidebar rz-header' 'rz-sidebar rz-body'">
     <RadzenHeader>
@@ -34,9 +39,12 @@
                         <RadzenTextBox Style="width: 100%" Value="@CurrentGame?.PlayerName" Disabled=true />
                         </RadzenCard>
                     </RadzenColumn>
+
             </Popup>
 
             <RadzenButton @ref="logButton" Style="margin:5px;" ButtonStyle="ButtonStyle.Dark" Text="遊戲紀錄" Icon="contract" Click="handleOpenLog" />
+
+         @*    <RadzenButton Style="margin:5px;" ButtonStyle="ButtonStyle.Secondary" Text="流程" Icon="contract" Click="handleOpenLog" /> *@
 
           @*   <RadzenAppearanceToggle Variant="Variant.Outlined" /> *@
 
@@ -89,7 +97,7 @@
                                CallPlay="handlePlay"
                                CallCancel="handleCancel"
                                NameChanged="handleNameChanged"></ListComponent>
-            }    
+            }
         </div>
     </RadzenBody>
 </RadzenLayout>
@@ -123,8 +131,23 @@
 
     protected override async Task OnInitializedAsync()
     {
+        UpdateService.OnUpdateConfirm = async () =>
+        {
+            await handleConfirmUpdate();
+        };
+
+        await UpdateService.CheckForUpdateAsync();
+
         await InitConfigData();
         isLoading = false;
+    }
+
+    private async Task handleConfirmUpdate()
+    {
+        await dialogService.OpenAsync("", ds =>
+    @<RadzenStack AlignItems="AlignItems.Center" Gap="2rem" class="rz-p-12">
+        <RadzenText TextStyle="TextStyle.H6">Updating, please wait...</RadzenText>
+    </RadzenStack>, new DialogOptions() { ShowTitle = false, Style = "min-height:auto;min-width:auto;width:auto", CloseDialogOnEsc = false });
     }
 
     bool sidebarExpanded = true;
@@ -162,6 +185,7 @@
             label = Enum.GetName(n),
             value = (int)n
         })
+        .Where(k => k.value is not 2) //TODO mouse
         .Distinct()
         .ToList();
 
@@ -197,11 +221,6 @@
         this.Category = model;
     }
 
-    private async Task OnClose()
-    {
-
-    }
-
     private async Task handleOpenLog()
     {
         var result = await dialogService.OpenAsync("Log", ds =>
@@ -213,7 +232,8 @@
             </RadzenStack>
             <RadzenButton Text="Refresh" Click="(() => { ds.Refresh(); })" ButtonStyle="ButtonStyle.Light" />
         </RadzenStack>
-    </RadzenStack>);
+    </RadzenStack>
+    );
     }
 
     private async Task handlePlay(CategoryModel model)
@@ -242,7 +262,7 @@
         isCancel = false;
         this.ProgressBarValue = 0;
 
-        for (var i = 0; i <= model.repeat; i++)
+        for (var i = 0; i < model.repeat; i++)
         {
             if (isCancel)
             {

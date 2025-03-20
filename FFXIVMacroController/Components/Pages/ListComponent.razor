@@ -1,6 +1,8 @@
 ﻿@using System.Collections.ObjectModel
 @using Microsoft.JSInterop
+@using System.IO
 @inject IJSRuntime JSRuntime
+@inject DialogService dialogService
 
 
 <RadzenDataGrid @ref="ordersGrid" RowRender="@RowRender" @bind-Value="selectedMacros" ColumnWidth="150px" AllowFiltering="true" AllowSorting="true" Data="@marcoList">
@@ -19,22 +21,39 @@
     </HeaderTemplate>
     
     <Columns>
-            <RadzenDataGridColumn Property="@nameof(MacroModel.keyNumber)" Title="按鍵" Sortable="false" Filterable="false" Width="180px">
+            <RadzenDataGridColumn Property="@nameof(MacroModel.keyNumber)" Title="按鍵/行為" Sortable="false" Filterable="false" Width="180px">
                 <Template Context="data">
-                    <RadzenDropDown @bind-Value="data.keyNumber"
-                                    Disabled="isPlaying == true"
-                                    AllowFiltering="true"
-                                    TextProperty="@nameof(OptionModel.label)"
-                                    ValueProperty="@nameof(OptionModel.value)"
-                                    Data="KeyList"
-                                    Style="width: 100%; max-width: 400px;" />
+                        @if (data.type == Types.button)
+                        {
+                            <RadzenDropDown @bind-Value="data.keyNumber"
+                                            Disabled="isPlaying == true || (data.type == Types.mouse || data.type == Types.text)"
+                                            AllowFiltering="true"
+                                            TextProperty="@nameof(OptionModel.label)"
+                                            ValueProperty="@nameof(OptionModel.value)"
+                                            Data="KeyList"
+                                            Style="width: 100%; max-width: 400px;" />
+                        }
+                        else if (data.type == Types.text)
+                        {
+                            <RadzenTextBox @bind-Value="data.inputText" Style="width: 100%" aria-label="Default TextBox" Disabled="isPlaying == true" />
+                        }
+                        else if (data.type == Types.mouse)
+                        {
+                            <RadzenButton Icon="imagesmode" Variant="Variant.Flat" Text="設定圖片"  Click="@(args => ShowImageDialog(data))" ButtonStyle="ButtonStyle.Base" />
+
+                            @if (!string.IsNullOrEmpty(data.imagePath))
+                            {
+                                <RadzenImage Path="@data.imagePath" />
+                            }
+                        }
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Property="@nameof(MacroModel.type)" Title="類型">
                 <Template Context="data">
                     <RadzenDropDown @bind-Value="data.typeNumber"
                                     AllowFiltering="true"
-                                Disabled="isPlaying == true"
+                                    Change="@((object value) => TypeChanged(data, value))"
+                                    Disabled="isPlaying == true"
                                     TextProperty="@nameof(OptionModel.label)"
                                     ValueProperty="@nameof(OptionModel.value)"
                                     Data="TypeList"
@@ -43,12 +62,7 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Property="@nameof(MacroModel.sleep)" Title="執行後暫停">
                 <Template Context="data">
-                <RadzenNumeric ShowUpDown="false" TValue="int" Min="1" @bind-Value="data.sleep" Disabled="isPlaying == true" />
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn Property="@nameof(MacroModel.inputText)" Title="文字">
-                <Template Context="data">
-                <RadzenTextBox @bind-Value="data.inputText" Style="width: 100%" aria-label="Default TextBox" Disabled="isPlaying == true" />
+                    <RadzenNumeric ShowUpDown="false" TValue="int" Min="1" @bind-Value="data.sleep" Disabled="isPlaying == true" />
                 </Template>
             </RadzenDataGridColumn>
         <RadzenDataGridColumn Width="50px" Context="data" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
@@ -80,14 +94,16 @@
     public EventCallback<ChangeEventArgs> NameChanged { get; set; }
 
     [Parameter]
-    public EventCallback<CategoryModel> CallPlay { get; set; }
+    public EventCallback<CategoryModel> CallCancel { get; set; }
 
     [Parameter]
-    public EventCallback<CategoryModel> CallCancel { get; set; }
+    public EventCallback<CategoryModel> CallPlay { get; set; }
 
     DataGridEditMode editMode = DataGridEditMode.Single;
 
     RadzenDataGrid<MacroModel> ordersGrid;
+
+    private string? FilePath { get; set; }
 
     protected override void OnParametersSet()
     {
@@ -116,6 +132,11 @@
         this.Category.macroList = this.marcoList.ToList();
     }
 
+    protected void TypeChanged(MacroModel macro, object value)
+    {
+        var controlType = (Types)value;
+        macro.type = controlType;
+    }
 
     protected async Task DeleteRow(MacroModel macro)
     {
@@ -140,6 +161,69 @@
     {
         await CallCancel.InvokeAsync(this.Category);
         isPlaying = false;
+    }
+
+    private async Task ShowImageDialog(MacroModel model)
+    {
+        var result = await dialogService.OpenAsync("設定圖片", ds =>
+    @<RadzenStack Gap="1.5rem">
+        <RadzenCard Variant="Variant.Outlined">
+            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Drag and drop files to upload</RadzenText>
+            <RadzenUpload ChooseText="Drag and drop here or click to choose files"
+                          Change=@(args => OnImageChange(args, model))
+                          InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})"
+                          Style="width: 100%" />
+            <RadzenButton Text="Confirm" Click="@(args => ConfirmImage(model))" class="rz-mt-4" />
+        </RadzenCard>
+    </RadzenStack>
+    );
+    }
+
+    private async Task OnImageChange(UploadChangeEventArgs args, MacroModel model)
+    {
+        if (args.Files.Count() == 0)
+        {
+            FilePath = string.Empty;
+            return;
+        }
+
+        foreach (var file in args.Files)
+        {
+            try
+            {
+                long maxFileSize = 10 * 1024 * 1024;
+                var stream = file.OpenReadStream(maxFileSize);
+
+                string uploadFolder = Path.Combine("wwwroot", "uploads");
+
+                if (!Directory.Exists(uploadFolder))
+                {
+                    Directory.CreateDirectory(uploadFolder);
+                }
+
+                string fileName = Path.GetFileName(file.Name);
+                string filePath = Path.Combine(uploadFolder, fileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await stream.CopyToAsync(fileStream);
+                }
+
+                stream.Close();
+
+                FilePath = filePath;
+            }
+            catch (Exception ex)
+            {
+                await dialogService.Alert(ex.Message, "Error", new AlertOptions() { OkButtonText = "OK" });
+            }
+        }
+    }
+
+    private void ConfirmImage(MacroModel model)
+    {
+        model.imagePath = FilePath ?? string.Empty;
+        dialogService.Close();
     }
 
     private void RowRender(RowRenderEventArgs<MacroModel> args)

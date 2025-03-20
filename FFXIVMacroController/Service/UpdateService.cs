@@ -1,34 +1,35 @@
-﻿using System;
+﻿using FFXIVMacroControllerApp.Model;
+using Microsoft.AspNetCore.Components;
+using Octokit;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
-namespace FFXIVMacroControllerApp.Helper
+namespace FFXIVMacroControllerApp.Service
 {
-    using FFXIVMacroControllerApp.Model;
-    using Octokit;
-    using System;
-    using System.Diagnostics;
-    using System.IO;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
-    using System.Reflection;
-    using System.Security.Policy;
-    using System.Threading.Channels;
-    using System.Threading.Tasks;
-    using System.Windows;
+    public interface IUpdateService
+    {
+        public Task CheckForUpdateAsync();
+        public Func<Task> OnUpdateConfirm { get; set; }
+    }
 
-    public class UpdateChecker
+    public class UpdateService : IUpdateService
     {
         private string? DownloadUrl { get; set; }
         private string? DownloadVersion { get; set; }
+        public Func<Task>? OnUpdateConfirm { get; set; }
 
         public async Task CheckForUpdateAsync()
         {
             var localVersion = GetLocalVersion();
             var remoteItem = await GetRemoteVersionAsync();
-
 
             if (remoteItem == null || localVersion == null)
             {
@@ -42,6 +43,11 @@ namespace FFXIVMacroControllerApp.Helper
 
                 if (result == MessageBoxResult.Yes)
                 {
+                    if (OnUpdateConfirm is not null)
+                    {
+                        await OnUpdateConfirm.Invoke();
+                    }
+
                     DownloadUrl = remoteItem.DownloadURL;
                     DownloadVersion = remoteItem.Version;
 
@@ -138,5 +144,4 @@ namespace FFXIVMacroControllerApp.Helper
             }
         }
     }
-
 }

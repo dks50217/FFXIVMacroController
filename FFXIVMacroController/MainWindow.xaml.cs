@@ -14,7 +14,7 @@ using FFXIVMacroController.Grunt;
 using FFXIVMacroController.Pigeonhole;
 using FFXIVMacroController.Seer;
 using FFXIVMacroController.Seer.Events;
-using FFXIVMacroControllerApp.Helper;
+using FFXIVMacroControllerApp.Service;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.WebView;
 using Microsoft.AspNetCore.Components.WebView.Wpf;
@@ -29,14 +29,10 @@ namespace FFXIVMacroControllerApp
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly UpdateChecker _updateChecker = new UpdateChecker();
-
         public MainWindow()
         {
 
             InitializeComponent();
-
-            Task.Run(async () => await CheckForUpdate());
 
             var version = Assembly.GetExecutingAssembly().GetName().Version;
             VersionLabel.Content = $"Version: {version}";
@@ -49,6 +45,9 @@ namespace FFXIVMacroControllerApp
 #endif
             serviceCollection.AddRadzenComponents();
             serviceCollection.AddRadzenCookieThemeService();
+            serviceCollection.AddScoped<IUpdateService, UpdateService>();
+            serviceCollection.AddScoped<IAutoClickService, AutoClickService>();
+
 
             //serviceCollection.AddSingleton<IFileProvider>(provider =>
             //{
@@ -57,20 +56,13 @@ namespace FFXIVMacroControllerApp
 
             Resources.Add("services", serviceCollection.BuildServiceProvider());
 
-            InitializeApp();
-        }
-
-        private async Task CheckForUpdate()
-        {
-            await _updateChecker.CheckForUpdateAsync();
-        }
-
-        private void InitializeApp()
-        {
-            BmpPigeonhole.Initialize(AppContext.BaseDirectory + @"\Grunt.ApiTest.json");
-            BmpSeer.Instance.SetupFirewall("FFXIVMacroController");
-            BmpSeer.Instance.Start();
-            BmpGrunt.Instance.Start();
+            Loaded += (s, e) => Dispatcher.BeginInvoke((Action)(() =>
+            {
+                BmpPigeonhole.Initialize(AppContext.BaseDirectory + @"\Grunt.ApiTest.json");
+                BmpSeer.Instance.SetupFirewall("FFXIVMacroController");
+                BmpSeer.Instance.Start();
+                BmpGrunt.Instance.Start();
+            }));
         }
 
         private void Minimize_Click(object sender, RoutedEventArgs e) => this.WindowState = WindowState.Minimized;

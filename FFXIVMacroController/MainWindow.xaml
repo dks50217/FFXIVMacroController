@@ -42,6 +42,7 @@
                 </Button>
             </StackPanel>
 
+
             <blazor:BlazorWebView Name="blazorWebView" HostPage="wwwroot\index.html" Services="{DynamicResource services}" Margin="0,40,0,30">
                 <blazor:BlazorWebView.RootComponents>
                     <blazor:RootComponent Selector="#app" ComponentType="{x:Type components:App}" />

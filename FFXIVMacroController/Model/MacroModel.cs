@@ -20,12 +20,13 @@ namespace FFXIVMacroControllerApp.Model
         public string? coordinate => $"({coordinateX},{coordinateY})";
         public string? keyName => Enum.GetName(key);
         public string? group { get; set; }
+        public string? imagePath { get; set; }
     }
 
     public enum Types
     {
         button = 1,
-        //mouse = 2,
+        mouse = 2,
         text = 3
     }
 }

@@ -25,18 +25,15 @@ public static partial class GameExtensions
     /// <returns></returns>
     public static async Task<bool> SendKeyArray(this Game game, Keys key)
     {
-        //if (!BmpGrunt.Instance.Started) throw new BmpGruntException("Grunt not started.");
-
         var sent = false;
 
-        // We lock here to allow lyrics from multiple bards to not have collisions in the windows clipboard.
-        
         await LyricSemaphoreSlim.WaitAsync();
 
         try
         {
             var tcs = new TaskCompletionSource<bool>();
             var clipboardThread = new Thread(() => SendKeyInputTask(tcs, game, key));
+
 #pragma warning disable CA1416
             clipboardThread.SetApartmentState(ApartmentState.STA);
 #pragma warning restore CA1416
@@ -71,8 +68,8 @@ public static partial class GameExtensions
 
         var sent = false;
 
-        // We lock here to allow lyrics from multiple bards to not have collisions in the windows clipboard.
         await LyricSemaphoreSlim.WaitAsync();
+
         try
         {
             var tcs = new TaskCompletionSource<bool>();

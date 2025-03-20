@@ -136,6 +136,12 @@
             await handleConfirmUpdate();
         };
 
+        UpdateService.OnUpdateEnd = () =>
+        {
+            handleUpdateEnd();
+            return Task.CompletedTask;
+        };
+
         await UpdateService.CheckForUpdateAsync();
 
         await InitConfigData();
@@ -147,7 +153,13 @@
         await dialogService.OpenAsync("", ds =>
     @<RadzenStack AlignItems="AlignItems.Center" Gap="2rem" class="rz-p-12">
         <RadzenText TextStyle="TextStyle.H6">Updating, please wait...</RadzenText>
-    </RadzenStack>, new DialogOptions() { ShowTitle = false, Style = "min-height:auto;min-width:auto;width:auto", CloseDialogOnEsc = false });
+    </RadzenStack>
+    , new DialogOptions() { ShowTitle = false, Style = "min-height:auto;min-width:auto;width:auto", CloseDialogOnEsc = false });
+    }
+
+    private void handleUpdateEnd()
+    {
+        dialogService.Close();
     }
 
     bool sidebarExpanded = true;

@@ -18,6 +18,7 @@ namespace FFXIVMacroControllerApp.Service
     {
         public Task CheckForUpdateAsync();
         public Func<Task> OnUpdateConfirm { get; set; }
+        public Func<Task> OnUpdateEnd { get; set; }
     }
 
     public class UpdateService : IUpdateService
@@ -25,6 +26,7 @@ namespace FFXIVMacroControllerApp.Service
         private string? DownloadUrl { get; set; }
         private string? DownloadVersion { get; set; }
         public Func<Task>? OnUpdateConfirm { get; set; }
+        public Func<Task>? OnUpdateEnd { get; set; }
 
         public async Task CheckForUpdateAsync()
         {
@@ -52,6 +54,11 @@ namespace FFXIVMacroControllerApp.Service
                     DownloadVersion = remoteItem.Version;
 
                     await DownloadAndInstallUpdate();
+
+                    if (OnUpdateEnd is not null)
+                    {
+                        await OnUpdateEnd.Invoke();
+                    }
                 }
             }
         }

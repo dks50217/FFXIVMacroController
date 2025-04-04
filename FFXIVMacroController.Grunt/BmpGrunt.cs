@@ -4,7 +4,6 @@
  */
 
 using System;
-using FFXIVMacroController.Grunt.Helper.Dalamud;
 using FFXIVMacroController.Seer;
 
 namespace FFXIVMacroController.Grunt;
@@ -17,8 +16,6 @@ public class BmpGrunt
     /// 
     /// </summary>
     public bool Started { get; private set; }
-
-    internal DalamudServer DalamudServer;
 
     private BmpGrunt()
     {
@@ -33,7 +30,6 @@ public class BmpGrunt
     {
         if (Started) return;
         if (!BmpSeer.Instance.Started) throw new BmpGruntException("Grunt requires Seer to be running.");
-        DalamudServer = new DalamudServer();
         Started       = true;
     }
 
@@ -43,8 +39,6 @@ public class BmpGrunt
     public void Stop()
     {
         if (!Started) return;
-        DalamudServer?.Dispose();
-        DalamudServer = null;
         Started       = false;
     }
 

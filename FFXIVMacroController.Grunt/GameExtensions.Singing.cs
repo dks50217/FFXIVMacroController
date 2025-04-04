@@ -63,9 +63,6 @@ public static partial class GameExtensions
     {
         if (!BmpGrunt.Instance.Started) throw new BmpGruntException("Grunt not started.");
 
-        if (BmpGrunt.Instance.DalamudServer.IsConnected(game.Pid))
-            return BmpGrunt.Instance.DalamudServer.SendChat(game.Pid, text);
-
         var sent = false;
 
         await LyricSemaphoreSlim.WaitAsync();

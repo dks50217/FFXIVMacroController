@@ -5,7 +5,6 @@
 
 using System;
 using FFXIVMacroController.Grunt.Helper.Dalamud;
-using FFXIVMacroController.Pigeonhole;
 using FFXIVMacroController.Seer;
 
 namespace FFXIVMacroController.Grunt;
@@ -33,7 +32,6 @@ public class BmpGrunt
     public void Start()
     {
         if (Started) return;
-        if (!BmpPigeonhole.Initialized) throw new BmpGruntException("Grunt requires Pigeonhole to be initialized.");
         if (!BmpSeer.Instance.Started) throw new BmpGruntException("Grunt requires Seer to be running.");
         DalamudServer = new DalamudServer();
         Started       = true;

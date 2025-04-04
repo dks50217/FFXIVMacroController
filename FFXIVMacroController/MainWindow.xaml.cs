@@ -11,7 +11,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using FFXIVMacroController.Grunt;
-using FFXIVMacroController.Pigeonhole;
 using FFXIVMacroController.Seer;
 using FFXIVMacroController.Seer.Events;
 using FFXIVMacroControllerApp.Service;
@@ -48,17 +47,10 @@ namespace FFXIVMacroControllerApp
             serviceCollection.AddScoped<IUpdateService, UpdateService>();
             serviceCollection.AddScoped<IAutoClickService, AutoClickService>();
 
-
-            //serviceCollection.AddSingleton<IFileProvider>(provider =>
-            //{
-            //    return new ManifestEmbeddedFileProvider(Assembly.GetExecutingAssembly(), "wwwroot");
-            //});
-
             Resources.Add("services", serviceCollection.BuildServiceProvider());
 
             Loaded += (s, e) => Dispatcher.BeginInvoke((Action)(() =>
             {
-                BmpPigeonhole.Initialize(AppContext.BaseDirectory + @"\Grunt.ApiTest.json");
                 BmpSeer.Instance.SetupFirewall("FFXIVMacroController");
                 BmpSeer.Instance.Start();
                 BmpGrunt.Instance.Start();

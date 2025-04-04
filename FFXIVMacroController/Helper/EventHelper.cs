@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FFXIVMacroController.Pigeonhole;
 using FFXIVMacroController.Quotidian.Enums;
 using FFXIVMacroController.Quotidian.Structs;
 using FFXIVMacroController.Seer;

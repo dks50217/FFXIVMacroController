@@ -8,7 +8,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using FFXIVMacroController.Pigeonhole;
 using FFXIVMacroController.Seer.Events;
 using FFXIVMacroController.Seer.Utilities;
 
@@ -114,9 +113,6 @@ public partial class BmpSeer : IDisposable
     public void Start()
     {
         if (Started) return;
-
-        if (!BmpPigeonhole.Initialized) throw new BmpSeerException("Seer requires Pigeonhole to be initialized.");
-
         StartEventsHandler();
         StartProcessWatcher();
         Started = true;

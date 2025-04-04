@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using FFXIVMacroController.Pigeonhole;
 using FFXIVMacroController.Quotidian.UtcMilliTime;
 using FFXIVMacroController.Seer.Events;
 
@@ -63,8 +62,9 @@ public partial class BmpSeer
                         continue;
 
                     var timeNow = Clock.Time.Now;
-                    if (coolDown + BmpPigeonhole.Instance.SeerGameScanCooldown > timeNow) 
-                        continue;
+
+                    //if (coolDown + BmpPigeonhole.Instance.SeerGameScanCooldown > timeNow) 
+                    //    continue;
 
                     coolDown = timeNow;
 

@@ -5,8 +5,6 @@ VisualStudioVersion = 17.5.33627.172
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFXIVMacroController.Grunt", "FFXIVMacroController.Grunt\FFXIVMacroController.Grunt.csproj", "{70F48AA7-F7FE-4516-9058-38824544C79A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFXIVMacroController.Pigeonhole", "FFXIVMacroController.Pigeonhole\FFXIVMacroController.Pigeonhole.csproj", "{AF341166-33C4-4FF7-ADD5-F6F4D33753C3}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFXIVMacroController.Quotidian", "FFXIVMacroController.Quotidian\FFXIVMacroController.Quotidian.csproj", "{F1B8BB01-FF8B-44D7-9B70-A1F2924B608B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFXIVMacroController.Seer", "FFXIVMacroController.Seer\FFXIVMacroController.Seer.csproj", "{49EA1454-FEFB-4F58-B02A-ADB61F61334F}"
@@ -29,14 +27,6 @@ Global
 		{70F48AA7-F7FE-4516-9058-38824544C79A}.Release|Any CPU.Build.0 = Release|x64
 		{70F48AA7-F7FE-4516-9058-38824544C79A}.Release|x64.ActiveCfg = Release|x64
 		{70F48AA7-F7FE-4516-9058-38824544C79A}.Release|x64.Build.0 = Release|x64
-		{AF341166-33C4-4FF7-ADD5-F6F4D33753C3}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{AF341166-33C4-4FF7-ADD5-F6F4D33753C3}.Debug|Any CPU.Build.0 = Debug|x64
-		{AF341166-33C4-4FF7-ADD5-F6F4D33753C3}.Debug|x64.ActiveCfg = Debug|x64
-		{AF341166-33C4-4FF7-ADD5-F6F4D33753C3}.Debug|x64.Build.0 = Debug|x64
-		{AF341166-33C4-4FF7-ADD5-F6F4D33753C3}.Release|Any CPU.ActiveCfg = Release|x64
-		{AF341166-33C4-4FF7-ADD5-F6F4D33753C3}.Release|Any CPU.Build.0 = Release|x64
-		{AF341166-33C4-4FF7-ADD5-F6F4D33753C3}.Release|x64.ActiveCfg = Release|x64
-		{AF341166-33C4-4FF7-ADD5-F6F4D33753C3}.Release|x64.Build.0 = Release|x64
 		{F1B8BB01-FF8B-44D7-9B70-A1F2924B608B}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{F1B8BB01-FF8B-44D7-9B70-A1F2924B608B}.Debug|Any CPU.Build.0 = Debug|x64
 		{F1B8BB01-FF8B-44D7-9B70-A1F2924B608B}.Debug|x64.ActiveCfg = Debug|x64

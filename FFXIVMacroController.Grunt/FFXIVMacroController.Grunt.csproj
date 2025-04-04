@@ -22,7 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FFXIVMacroController.Pigeonhole\FFXIVMacroController.Pigeonhole.csproj" />
     <ProjectReference Include="..\FFXIVMacroController.Quotidian\FFXIVMacroController.Quotidian.csproj" />
     <ProjectReference Include="..\FFXIVMacroController.Seer\FFXIVMacroController.Seer.csproj" />
   </ItemGroup>

@@ -20,7 +20,9 @@ allow you run scripts in the background window, so you can watch YouTube or do o
 
 For detailed information, please execute the main program directly.
 
-![image info](./Image/UI.jpg)
+![image info2](./Image/UI2.jpg)
+
+![image info3](./Image/UI3.jpg)
 
 # Json Config Schema
 ```json

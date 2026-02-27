@@ -47,7 +47,7 @@ namespace FFXIVMacroControllerApp.Service
                 {
                     if (OnUpdateConfirm is not null)
                     {
-                        _ = OnUpdateConfirm.Invoke();
+                        await OnUpdateConfirm.Invoke();
                     }
 
                     DownloadUrl = remoteItem.DownloadURL;

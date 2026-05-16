@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -39,9 +39,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FFXIVMacroController.Grunt\FFXIVMacroController.Grunt.csproj" />
-    <ProjectReference Include="..\FFXIVMacroController.Quotidian\FFXIVMacroController.Quotidian.csproj" />
-    <ProjectReference Include="..\FFXIVMacroController.Seer\FFXIVMacroController.Seer.csproj" />
+    <ProjectReference Include="..\FFXIVMacroController.InputSender\FFXIVMacroController.InputSender.csproj" />
+    <ProjectReference Include="..\FFXIVMacroController.Common\FFXIVMacroController.Common.csproj" />
+    <ProjectReference Include="..\FFXIVMacroController.GameMonitor\FFXIVMacroController.GameMonitor.csproj" />
   </ItemGroup>
 
   <ItemGroup>

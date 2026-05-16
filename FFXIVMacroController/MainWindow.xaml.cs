@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Reflection;
 using System.Text;
 using System.Windows;
@@ -10,9 +10,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using FFXIVMacroController.Grunt;
-using FFXIVMacroController.Seer;
-using FFXIVMacroController.Seer.Events;
+using FFXIVMacroController.InputSender;
+using FFXIVMacroController.GameMonitor;
+using FFXIVMacroController.GameMonitor.Events;
 using FFXIVMacroControllerApp.Service;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.WebView;
@@ -51,7 +51,6 @@ namespace FFXIVMacroControllerApp
 
             Loaded += (s, e) => Dispatcher.BeginInvoke((Action)(() =>
             {
-                BmpSeer.Instance.SetupFirewall("FFXIVMacroController");
                 BmpSeer.Instance.Start();
                 BmpGrunt.Instance.Start();
             }));

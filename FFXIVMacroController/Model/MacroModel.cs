@@ -1,4 +1,4 @@
-﻿using FFXIVMacroController.Quotidian.Enums;
+using FFXIVMacroController.Common.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;

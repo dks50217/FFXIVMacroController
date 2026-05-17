@@ -40,29 +40,13 @@
                         }
                         else if (data.type == Types.mouse)
                         {
-                            <RadzenStack Orientation="Orientation.Vertical" Gap="4px">
-                                <RadzenButton Icon="imagesmode" Variant="Variant.Flat" Text="設定圖片" Click="@(args => ShowImageDialog(data))" ButtonStyle="ButtonStyle.Base" Disabled="isPlaying == true" />
-                                @if (!string.IsNullOrEmpty(data.imagePath))
-                                {
-                                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="4px">
-                                        <RadzenText TextStyle="TextStyle.Caption">@System.IO.Path.GetFileName(data.imagePath)</RadzenText>
-                                        <RadzenButton Icon="visibility" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="@(() => ShowPreviewDialog(data.imagePath))" />
-                                    </RadzenStack>
-                                }
-                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="4px">
-                                    <RadzenText TextStyle="TextStyle.Caption">信度:</RadzenText>
-                                    <RadzenSlider @bind-Value="data.confidence" Min="0.1m" Max="1.0m" Step="0.05m" Style="width:80px" Disabled="isPlaying == true" />
-                                    <RadzenText TextStyle="TextStyle.Caption">@data.confidence.ToString("F2")</RadzenText>
-                                </RadzenStack>
-                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="4px">
-                                    <RadzenText TextStyle="TextStyle.Caption">按鍵:</RadzenText>
-                                    <RadzenSelectBar @bind-Value="data.mouseButton" Disabled="isPlaying == true" TValue="MouseButton" Size="ButtonSize.ExtraSmall">
-                                        <Items>
-                                            <RadzenSelectBarItem Text="左鍵" Value="MouseButton.Left" />
-                                            <RadzenSelectBarItem Text="右鍵" Value="MouseButton.Right" />
-                                        </Items>
-                                    </RadzenSelectBar>
-                                </RadzenStack>
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px">
+                                <RadzenButton Icon="tune" Size="ButtonSize.Small" Variant="Variant.Filled"
+                                              Text="設定" Click="@(() => ShowMouseSettingDialog(data))" Disabled="isPlaying == true"
+                                              Style="background-color:#e67e22;border-color:#e67e22;color:#fff;" />
+                                <RadzenText TextStyle="TextStyle.Caption" Style="color:var(--rz-text-secondary-color)">
+                                    @(string.IsNullOrEmpty(data.imagePath) ? "未設定圖片" : System.IO.Path.GetFileName(data.imagePath))
+                                </RadzenText>
                             </RadzenStack>
                         }
                 </Template>
@@ -232,12 +216,58 @@
                 stream.Close();
 
                 FilePath = filePath;
+                ConfirmImage(model);
             }
             catch (Exception ex)
             {
                 await dialogService.Alert(ex.Message, "Error", new AlertOptions() { OkButtonText = "OK" });
             }
         }
+    }
+
+    private async Task ShowMouseSettingDialog(MacroModel model)
+    {
+        await dialogService.OpenAsync("滑鼠設定", ds =>
+    @<RadzenStack Gap="1rem" Style="min-width:360px">
+        <RadzenFormField Text="圖片" Variant="Variant.Outlined">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="8px">
+                <RadzenText>@(string.IsNullOrEmpty(model.imagePath) ? "未設定" : System.IO.Path.GetFileName(model.imagePath))</RadzenText>
+                @if (!string.IsNullOrEmpty(model.imagePath))
+                {
+                    <RadzenButton Icon="visibility" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat"
+                                  Click="@(() => ShowPreviewDialog(model.imagePath))" />
+                }
+            </RadzenStack>
+        </RadzenFormField>
+
+        <RadzenUpload ChooseText="@(string.IsNullOrEmpty(model.imagePath) ? "選擇圖片" : "變更圖片")" Accept="image/*"
+                      Change="@(args => OnImageChange(args, model))"
+                      InputAttributes="@(new Dictionary<string,object>{ { "aria-label", "select file" } })"
+                      Style="width:100%" />
+
+        @if (!string.IsNullOrEmpty(model.imagePath))
+        {
+            <RadzenFormField Text="信度" Variant="Variant.Outlined">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="8px">
+                    <RadzenSlider Value="@model.confidence" Min="0.1m" Max="1.0m" Step="0.05m" Style="flex:1"
+                                  Change="@((decimal v) => { model.confidence = v; ds.Refresh(); })" TValue="decimal" />
+                    <RadzenText Style="min-width:32px">@model.confidence.ToString("F2")</RadzenText>
+                </RadzenStack>
+            </RadzenFormField>
+        }
+
+        <RadzenFormField Text="點擊按鍵" Variant="Variant.Outlined">
+            <RadzenSelectBar @bind-Value="model.mouseButton" TValue="MouseButton" Size="ButtonSize.Small">
+                <Items>
+                    <RadzenSelectBarItem Text="左鍵" Value="MouseButton.Left" />
+                    <RadzenSelectBarItem Text="右鍵" Value="MouseButton.Right" />
+                </Items>
+            </RadzenSelectBar>
+        </RadzenFormField>
+
+        <RadzenButton Text="確認" Click="@(() => ds.Close())" ButtonStyle="ButtonStyle.Primary" Style="align-self:flex-end" />
+    </RadzenStack>
+        , new DialogOptions() { ShowClose = true });
     }
 
     private async Task ShowPreviewDialog(string imagePath)
@@ -255,7 +285,6 @@
         model.imagePath = FilePath ?? string.Empty;
         if (!string.IsNullOrEmpty(model.imagePath))
             _imageDataUrlCache.Remove(model.imagePath);
-        dialogService.Close();
     }
 
     private string GetImageDataUrl(string path)

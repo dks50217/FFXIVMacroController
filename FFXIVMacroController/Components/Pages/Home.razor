@@ -159,17 +159,27 @@
             return Task.CompletedTask;
         };
 
+        UpdateService.OnDownloadProgress = (progress) =>
+        {
+            UpdateDownloadProgress = progress;
+            InvokeAsync(StateHasChanged);
+        };
+
         await UpdateService.CheckForUpdateAsync();
 
         await InitConfigData();
         isLoading = false;
     }
 
+    private int UpdateDownloadProgress { get; set; } = 0;
+
     private Task handleConfirmUpdate()
     {
         dialogService.OpenAsync("", ds =>
-    @<RadzenStack AlignItems="AlignItems.Center" Gap="2rem" class="rz-p-12">
-        <RadzenText TextStyle="TextStyle.H6">Updating, please wait...</RadzenText>
+    @<RadzenStack AlignItems="AlignItems.Center" Gap="1.5rem" class="rz-p-12" Style="min-width:320px">
+        <RadzenText TextStyle="TextStyle.H6">正在下載更新...</RadzenText>
+        <RadzenProgressBar Value="@UpdateDownloadProgress" Style="width:100%" ShowValue="true" />
+        <RadzenText TextStyle="TextStyle.Caption">下載完成後程式將自動重新啟動</RadzenText>
     </RadzenStack>
         , new DialogOptions() { ShowTitle = false, Style = "min-height:auto;min-width:auto;width:auto", CloseDialogOnEsc = false });
         return Task.CompletedTask;

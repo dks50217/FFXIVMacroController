@@ -111,6 +111,12 @@ namespace FFXIVMacroController.Helper
                     }
 
                     break;
+                case Types.mouse:
+                    if (!string.IsNullOrEmpty(macro.imagePath))
+                    {
+                        await GameExtensions.LocateAndClick(macro.imagePath, (double)macro.confidence, macro.mouseButton == MouseButton.Right);
+                    }
+                    break;
             }
 
             await Task.WhenAny(delayTask);
@@ -173,6 +179,20 @@ namespace FFXIVMacroController.Helper
                     model.coordinateY = coordinateY;
 
                     model.sleep = subItem.GetProperty("sleep").GetInt16();
+
+                    if (subItem.TryGetProperty("imagePath", out var imgProp))
+                        model.imagePath = imgProp.GetString();
+
+                    if (subItem.TryGetProperty("confidence", out var confProp))
+                        model.confidence = (decimal)confProp.GetDouble();
+                    else
+                        model.confidence = 0.8m;
+
+                    if (subItem.TryGetProperty("mouseButton", out var btnProp) &&
+                        Enum.TryParse(btnProp.GetRawText().Trim('"'), out MouseButton mb))
+                        model.mouseButton = mb;
+                    else
+                        model.mouseButton = MouseButton.Left;
 
                     model.group = categoryModel.id;
 

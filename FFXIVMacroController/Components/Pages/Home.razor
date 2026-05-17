@@ -98,7 +98,7 @@
             {
                 <RadzenProgressBar @bind-Value="@ProgressBarValue">
                     <Template>
-                        <RadzenText TextStyle="TextStyle.Subtitle2"><strong>@ProgressBarValue% @(!string.IsNullOrEmpty(CountLeft) ? $"({CountLeft})" : "")</strong></RadzenText>
+                        <RadzenText TextStyle="TextStyle.Subtitle2"><strong>@ProgressBarValue% @(!string.IsNullOrEmpty(CountLeft) ? $"({CountLeft})" : "") @(StepCountdown.HasValue ? $"| 剩餘: {StepCountdown}s" : "")</strong></RadzenText>
                     </Template>
                 </RadzenProgressBar>
                 <ListComponent @ref="listComponent"
@@ -193,11 +193,34 @@
     private AlertStyle MessageAlertStyle { get; set; } = AlertStyle.Info;
     private CancellationTokenSource cancellationTokenSource = null;
     private string? CountLeft { get; set; }
+    private int? StepCountdown { get; set; }
     private string? LogText { get; set; }
+
+    private static readonly string ConfigPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
 
     private async Task InitConfigData()
     {
-        var json = await File.ReadAllTextAsync("config.json");
+        if (!File.Exists(ConfigPath))
+        {
+            var defaultRoot = new MacroRootModel
+            {
+                rootID = Guid.NewGuid().ToString(),
+                categoryList = new List<CategoryModel>
+                {
+                    new CategoryModel
+                    {
+                        id = Guid.NewGuid().ToString(),
+                        name = "New Macro",
+                        category = "action",
+                        repeat = 1,
+                        macroList = new List<MacroModel>()
+                    }
+                }
+            };
+            await File.WriteAllTextAsync(ConfigPath, JsonSerializer.Serialize(defaultRoot));
+        }
+
+        var json = await File.ReadAllTextAsync(ConfigPath);
 
         this.rootModel = EventHelper.ConvertJsonToList(json);
 
@@ -215,7 +238,7 @@
             label = Enum.GetName(n),
             value = (int)n
         })
-        .Where(k => k.value is not 2) //TODO mouse
+        .Where(k => true)
         .Distinct()
         .ToList();
 
@@ -304,8 +327,28 @@
             foreach (var item in model.macroList.Select((value, index) => new { index, value }))
             {
                 currentStep++;
-                listComponent?.FocusOnRow(item.index);
+                await (listComponent?.FocusOnRow(item.index) ?? Task.CompletedTask);
+
+                var stepCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                int sleepSecs = item.value.sleep;
+                _ = Task.Run(async () =>
+                {
+                    for (int s = sleepSecs; s >= 0; s--)
+                    {
+                        StepCountdown = s;
+                        await InvokeAsync(StateHasChanged);
+                        if (s > 0)
+                        {
+                            try { await Task.Delay(1000, stepCts.Token); }
+                            catch (OperationCanceledException) { break; }
+                        }
+                    }
+                });
+
                 await EventHelper.SendInput_Token(game, item.value, cancellationToken);
+                stepCts.Cancel();
+                StepCountdown = null;
+
                 this.ProgressBarValue = (int)((double)currentStep / totalSteps * 100);
 
                 if (IsRandom)
@@ -346,7 +389,7 @@
         try
         {
             string json = JsonSerializer.Serialize(this.rootModel);
-            await File.WriteAllTextAsync(AppDomain.CurrentDomain.BaseDirectory + @"\config.json", json);
+            await File.WriteAllTextAsync(ConfigPath, json);
             MessageAlertStyle = AlertStyle.Success;
             await dialogService.Alert("儲存成功", "Message", new AlertOptions() { OkButtonText = "OK" });
         }

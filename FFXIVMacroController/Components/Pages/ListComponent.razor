@@ -1,6 +1,7 @@
 ﻿@using System.Collections.ObjectModel
 @using Microsoft.JSInterop
 @using System.IO
+@using FFXIVMacroControllerApp.Model
 @inject IJSRuntime JSRuntime
 @inject DialogService dialogService
 
@@ -39,12 +40,30 @@
                         }
                         else if (data.type == Types.mouse)
                         {
-                            <RadzenButton Icon="imagesmode" Variant="Variant.Flat" Text="設定圖片"  Click="@(args => ShowImageDialog(data))" ButtonStyle="ButtonStyle.Base" />
-
-                            @if (!string.IsNullOrEmpty(data.imagePath))
-                            {
-                                <RadzenImage Path="@data.imagePath" />
-                            }
+                            <RadzenStack Orientation="Orientation.Vertical" Gap="4px">
+                                <RadzenButton Icon="imagesmode" Variant="Variant.Flat" Text="設定圖片" Click="@(args => ShowImageDialog(data))" ButtonStyle="ButtonStyle.Base" Disabled="isPlaying == true" />
+                                @if (!string.IsNullOrEmpty(data.imagePath))
+                                {
+                                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="4px">
+                                        <RadzenText TextStyle="TextStyle.Caption">@System.IO.Path.GetFileName(data.imagePath)</RadzenText>
+                                        <RadzenButton Icon="visibility" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="@(() => ShowPreviewDialog(data.imagePath))" />
+                                    </RadzenStack>
+                                }
+                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="4px">
+                                    <RadzenText TextStyle="TextStyle.Caption">信度:</RadzenText>
+                                    <RadzenSlider @bind-Value="data.confidence" Min="0.1m" Max="1.0m" Step="0.05m" Style="width:80px" Disabled="isPlaying == true" />
+                                    <RadzenText TextStyle="TextStyle.Caption">@data.confidence.ToString("F2")</RadzenText>
+                                </RadzenStack>
+                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="4px">
+                                    <RadzenText TextStyle="TextStyle.Caption">按鍵:</RadzenText>
+                                    <RadzenSelectBar @bind-Value="data.mouseButton" Disabled="isPlaying == true" TValue="MouseButton" Size="ButtonSize.ExtraSmall">
+                                        <Items>
+                                            <RadzenSelectBarItem Text="左鍵" Value="MouseButton.Left" />
+                                            <RadzenSelectBarItem Text="右鍵" Value="MouseButton.Right" />
+                                        </Items>
+                                    </RadzenSelectBar>
+                                </RadzenStack>
+                            </RadzenStack>
                         }
                 </Template>
             </RadzenDataGridColumn>
@@ -80,6 +99,7 @@
     private MacroModel? draggedItem;
     private IList<MacroModel>? selectedMacros;
     private bool isPlaying = false;
+    private readonly Dictionary<string, string> _imageDataUrlCache = new();
 
     [Parameter]
     public CategoryModel? Category { get; set; }
@@ -194,7 +214,7 @@
                 long maxFileSize = 10 * 1024 * 1024;
                 var stream = file.OpenReadStream(maxFileSize);
 
-                string uploadFolder = Path.Combine("wwwroot", "uploads");
+                string uploadFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "images");
 
                 if (!Directory.Exists(uploadFolder))
                 {
@@ -220,10 +240,45 @@
         }
     }
 
+    private async Task ShowPreviewDialog(string imagePath)
+    {
+        var dataUrl = GetImageDataUrl(imagePath);
+        await dialogService.OpenAsync("圖片預覽", ds =>
+    @<div style="text-align:center;padding:8px;">
+        <img src="@dataUrl" style="max-width:600px;max-height:500px;" />
+    </div>
+        , new DialogOptions() { ShowClose = true });
+    }
+
     private void ConfirmImage(MacroModel model)
     {
         model.imagePath = FilePath ?? string.Empty;
+        if (!string.IsNullOrEmpty(model.imagePath))
+            _imageDataUrlCache.Remove(model.imagePath);
         dialogService.Close();
+    }
+
+    private string GetImageDataUrl(string path)
+    {
+        if (_imageDataUrlCache.TryGetValue(path, out var cached))
+            return cached;
+
+        if (!File.Exists(path))
+            return string.Empty;
+
+        try
+        {
+            var bytes = File.ReadAllBytes(path);
+            var ext = Path.GetExtension(path).TrimStart('.').ToLower();
+            var mime = ext switch { "png" => "image/png", "gif" => "image/gif", _ => "image/jpeg" };
+            var dataUrl = $"data:{mime};base64,{Convert.ToBase64String(bytes)}";
+            _imageDataUrlCache[path] = dataUrl;
+            return dataUrl;
+        }
+        catch
+        {
+            return string.Empty;
+        }
     }
 
     private void RowRender(RowRenderEventArgs<MacroModel> args)

@@ -1,14 +1,11 @@
-﻿using FFXIVMacroControllerApp.Model;
-using Microsoft.AspNetCore.Components;
+using FFXIVMacroControllerApp.Model;
 using Octokit;
+using System.Linq;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -17,8 +14,9 @@ namespace FFXIVMacroControllerApp.Service
     public interface IUpdateService
     {
         public Task CheckForUpdateAsync();
-        public Func<Task> OnUpdateConfirm { get; set; }
-        public Func<Task> OnUpdateEnd { get; set; }
+        public Func<Task>? OnUpdateConfirm { get; set; }
+        public Func<Task>? OnUpdateEnd { get; set; }
+        public Action<int>? OnDownloadProgress { get; set; }
     }
 
     public class UpdateService : IUpdateService
@@ -27,6 +25,10 @@ namespace FFXIVMacroControllerApp.Service
         private string? DownloadVersion { get; set; }
         public Func<Task>? OnUpdateConfirm { get; set; }
         public Func<Task>? OnUpdateEnd { get; set; }
+        public Action<int>? OnDownloadProgress { get; set; }
+
+        private const string TargetUsername = "dks50217";
+        private const string TargetRepository = "FFXIVMacroController";
 
         public async Task CheckForUpdateAsync()
         {
@@ -34,33 +36,34 @@ namespace FFXIVMacroControllerApp.Service
             var remoteItem = await GetRemoteVersionAsync();
 
             if (remoteItem == null || localVersion == null)
-            {
-                MessageBox.Show("無法檢查更新。");
+                return; // 靜默失敗，不影響啟動
+
+            // 移除 tag 前綴的 "v" 再解析
+            var remoteTag = remoteItem.Version.TrimStart('v');
+            if (!Version.TryParse(remoteTag, out var remoteVersion))
                 return;
-            }
 
-            if (remoteItem.Version.CompareTo($"v{localVersion}") > 0)
-            {
-                var result = MessageBox.Show("有新版本可用，是否下載更新？", "更新提示", MessageBoxButton.YesNo);
+            if (remoteVersion <= localVersion)
+                return;
 
-                if (result == MessageBoxResult.Yes)
-                {
-                    if (OnUpdateConfirm is not null)
-                    {
-                        await OnUpdateConfirm.Invoke();
-                    }
+            var result = MessageBox.Show(
+                $"有新版本可用 ({remoteItem.Version})，是否下載更新？",
+                "更新提示",
+                MessageBoxButton.YesNo);
 
-                    DownloadUrl = remoteItem.DownloadURL;
-                    DownloadVersion = remoteItem.Version;
+            if (result != MessageBoxResult.Yes)
+                return;
 
-                    await DownloadAndInstallUpdate();
+            if (OnUpdateConfirm is not null)
+                await OnUpdateConfirm.Invoke();
 
-                    if (OnUpdateEnd is not null)
-                    {
-                        await OnUpdateEnd.Invoke();
-                    }
-                }
-            }
+            DownloadUrl = remoteItem.DownloadURL;
+            DownloadVersion = remoteItem.Version;
+
+            await DownloadAndInstallUpdate();
+
+            if (OnUpdateEnd is not null)
+                await OnUpdateEnd.Invoke();
         }
 
         private Version? GetLocalVersion()
@@ -72,39 +75,35 @@ namespace FFXIVMacroControllerApp.Service
         {
             try
             {
-                string targetUsername = "dks50217";
-                string targetRepositoryName = "FFXIVMacroController";
+                var github = new GitHubClient(new ProductHeaderValue("FFXIVMacroController-UpdateChecker"));
+                var releases = await github.Repository.Release.GetAll(TargetUsername, TargetRepository);
 
-                var github = new GitHubClient(new Octokit.ProductHeaderValue("GitHubUpdateChecker"));
-
-                var releases = await github.Repository.Release.GetAll(targetUsername, targetRepositoryName);
-
-                if (releases.Count > 0)
-                {
-                    var latestRelease = releases[0];
-
-                    Console.WriteLine($"Latest Release Tag: {latestRelease.TagName}");
-
-                    var downloadUrl = latestRelease.Assets.First().BrowserDownloadUrl;
-
-                    var result = new GithubVersionModel
-                    {
-                        DownloadURL = downloadUrl,
-                        Version = latestRelease.TagName
-                    };
-
-                    return result;
-                }
-                else
-                {
-                    Console.WriteLine("No releases found for the repository.");
+                if (releases.Count == 0)
                     return null;
-                }
+
+                var latest = releases[0];
+
+                // 找名稱包含 "FFXIVMacroController" 且副檔名為 .zip 的 asset
+                var asset = latest.Assets
+                    .FirstOrDefault(a => a.Name.Contains("FFXIVMacroController", StringComparison.OrdinalIgnoreCase)
+                                      && a.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                    ?? latest.Assets.FirstOrDefault();
+
+                if (asset == null)
+                    return null;
+
+                Console.WriteLine($"Latest release: {latest.TagName}, asset: {asset.Name}");
+
+                return new GithubVersionModel
+                {
+                    DownloadURL = asset.BrowserDownloadUrl,
+                    Version = latest.TagName
+                };
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"檢查版本時出錯：{ex.Message}");
-                return null;
+                Console.WriteLine($"檢查版本失敗（靜默）: {ex.Message}");
+                return null; // 靜默失敗
             }
         }
 
@@ -113,29 +112,50 @@ namespace FFXIVMacroControllerApp.Service
             try
             {
                 using var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("FFXIVMacroController-Updater");
 
                 using var response = await httpClient.GetAsync(DownloadUrl, HttpCompletionOption.ResponseHeadersRead);
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"下載失敗: {response.StatusCode}");
+                    MessageBox.Show($"下載失敗: {response.StatusCode}");
                     return;
                 }
 
-                using var stream = await response.Content.ReadAsStreamAsync();
+                var totalBytes = response.Content.Headers.ContentLength ?? 0;
+                var baseDir = AppDomain.CurrentDomain.BaseDirectory;
                 var fileName = $"FFXIVMacroController_{DownloadVersion}.zip";
-                var targetFilePath = Path.Combine(Directory.GetCurrentDirectory(), fileName);
-                using var fileStream = new FileStream(targetFilePath, System.IO.FileMode.Create, FileAccess.Write, FileShare.None);
-                await stream.CopyToAsync(fileStream);
+                var targetFilePath = Path.Combine(baseDir, fileName);
 
-                string scriptPath = "update.ps1";
-                string arguments = $"-File \"{scriptPath}\"";
+                // 下載並回報進度
+                using (var stream = await response.Content.ReadAsStreamAsync())
+                using (var fileStream = new FileStream(targetFilePath, System.IO.FileMode.Create))
+                {
+                    var buffer = new byte[81920];
+                    long downloaded = 0;
+                    int read;
 
-                // 啟動 PowerShell 腳本
+                    while ((read = await stream.ReadAsync(buffer)) > 0)
+                    {
+                        await fileStream.WriteAsync(buffer.AsMemory(0, read));
+                        downloaded += read;
+
+                        if (totalBytes > 0)
+                        {
+                            var progress = (int)(downloaded * 100 / totalBytes);
+                            OnDownloadProgress?.Invoke(progress);
+                        }
+                    }
+                } // fileStream 在這裡關閉，解除檔案鎖定，避免 PS1 解壓時失敗
+
+                // 啟動 update.ps1
+                var scriptPath = Path.Combine(baseDir, "update.ps1");
+                var exePath = Path.Combine(baseDir, "FFXIVMacroControllerApp.exe");
+
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = "powershell.exe",
-                    Arguments = arguments,
+                    Arguments = $"-ExecutionPolicy Bypass -File \"{scriptPath}\" -ExePath \"{exePath}\"",
                     UseShellExecute = false,
                     CreateNoWindow = false
                 });

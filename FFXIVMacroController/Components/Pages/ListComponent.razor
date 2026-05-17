@@ -1,6 +1,7 @@
 ﻿@using System.Collections.ObjectModel
 @using Microsoft.JSInterop
 @using System.IO
+@using FFXIVMacroControllerApp.Model
 @inject IJSRuntime JSRuntime
 @inject DialogService dialogService
 
@@ -39,12 +40,14 @@
                         }
                         else if (data.type == Types.mouse)
                         {
-                            <RadzenButton Icon="imagesmode" Variant="Variant.Flat" Text="設定圖片"  Click="@(args => ShowImageDialog(data))" ButtonStyle="ButtonStyle.Base" />
-
-                            @if (!string.IsNullOrEmpty(data.imagePath))
-                            {
-                                <RadzenImage Path="@data.imagePath" />
-                            }
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px">
+                                <RadzenButton Icon="tune" Size="ButtonSize.Small" Variant="Variant.Filled"
+                                              Text="設定" Click="@(() => ShowMouseSettingDialog(data))" Disabled="isPlaying == true"
+                                              Style="background-color:#e67e22;border-color:#e67e22;color:#fff;" />
+                                <RadzenText TextStyle="TextStyle.Caption" Style="color:var(--rz-text-secondary-color)">
+                                    @(string.IsNullOrEmpty(data.imagePath) ? "未設定圖片" : System.IO.Path.GetFileName(data.imagePath))
+                                </RadzenText>
+                            </RadzenStack>
                         }
                 </Template>
             </RadzenDataGridColumn>
@@ -80,6 +83,7 @@
     private MacroModel? draggedItem;
     private IList<MacroModel>? selectedMacros;
     private bool isPlaying = false;
+    private readonly Dictionary<string, string> _imageDataUrlCache = new();
 
     [Parameter]
     public CategoryModel? Category { get; set; }
@@ -194,7 +198,7 @@
                 long maxFileSize = 10 * 1024 * 1024;
                 var stream = file.OpenReadStream(maxFileSize);
 
-                string uploadFolder = Path.Combine("wwwroot", "uploads");
+                string uploadFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "images");
 
                 if (!Directory.Exists(uploadFolder))
                 {
@@ -212,6 +216,7 @@
                 stream.Close();
 
                 FilePath = filePath;
+                ConfirmImage(model);
             }
             catch (Exception ex)
             {
@@ -220,10 +225,89 @@
         }
     }
 
+    private async Task ShowMouseSettingDialog(MacroModel model)
+    {
+        await dialogService.OpenAsync("滑鼠設定", ds =>
+    @<RadzenStack Gap="1rem" Style="min-width:360px">
+        <RadzenFormField Text="圖片" Variant="Variant.Outlined">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="8px">
+                <RadzenText>@(string.IsNullOrEmpty(model.imagePath) ? "未設定" : System.IO.Path.GetFileName(model.imagePath))</RadzenText>
+                @if (!string.IsNullOrEmpty(model.imagePath))
+                {
+                    <RadzenButton Icon="visibility" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat"
+                                  Click="@(() => ShowPreviewDialog(model.imagePath))" />
+                }
+            </RadzenStack>
+        </RadzenFormField>
+
+        <RadzenUpload ChooseText="@(string.IsNullOrEmpty(model.imagePath) ? "選擇圖片" : "變更圖片")" Accept="image/*"
+                      Change="@(args => OnImageChange(args, model))"
+                      InputAttributes="@(new Dictionary<string,object>{ { "aria-label", "select file" } })"
+                      Style="width:100%" />
+
+        @if (!string.IsNullOrEmpty(model.imagePath))
+        {
+            <RadzenFormField Text="信度" Variant="Variant.Outlined">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="8px">
+                    <RadzenSlider Value="@model.confidence" Min="0.1m" Max="1.0m" Step="0.05m" Style="flex:1"
+                                  Change="@((decimal v) => { model.confidence = v; ds.Refresh(); })" TValue="decimal" />
+                    <RadzenText Style="min-width:32px">@model.confidence.ToString("F2")</RadzenText>
+                </RadzenStack>
+            </RadzenFormField>
+        }
+
+        <RadzenFormField Text="點擊按鍵" Variant="Variant.Outlined">
+            <RadzenSelectBar @bind-Value="model.mouseButton" TValue="MouseButton" Size="ButtonSize.Small">
+                <Items>
+                    <RadzenSelectBarItem Text="左鍵" Value="MouseButton.Left" />
+                    <RadzenSelectBarItem Text="右鍵" Value="MouseButton.Right" />
+                </Items>
+            </RadzenSelectBar>
+        </RadzenFormField>
+
+        <RadzenButton Text="確認" Click="@(() => ds.Close())" ButtonStyle="ButtonStyle.Primary" Style="align-self:flex-end" />
+    </RadzenStack>
+        , new DialogOptions() { ShowClose = true });
+    }
+
+    private async Task ShowPreviewDialog(string imagePath)
+    {
+        var dataUrl = GetImageDataUrl(imagePath);
+        await dialogService.OpenAsync("圖片預覽", ds =>
+    @<div style="text-align:center;padding:8px;">
+        <img src="@dataUrl" style="max-width:600px;max-height:500px;" />
+    </div>
+        , new DialogOptions() { ShowClose = true });
+    }
+
     private void ConfirmImage(MacroModel model)
     {
         model.imagePath = FilePath ?? string.Empty;
-        dialogService.Close();
+        if (!string.IsNullOrEmpty(model.imagePath))
+            _imageDataUrlCache.Remove(model.imagePath);
+    }
+
+    private string GetImageDataUrl(string path)
+    {
+        if (_imageDataUrlCache.TryGetValue(path, out var cached))
+            return cached;
+
+        if (!File.Exists(path))
+            return string.Empty;
+
+        try
+        {
+            var bytes = File.ReadAllBytes(path);
+            var ext = Path.GetExtension(path).TrimStart('.').ToLower();
+            var mime = ext switch { "png" => "image/png", "gif" => "image/gif", _ => "image/jpeg" };
+            var dataUrl = $"data:{mime};base64,{Convert.ToBase64String(bytes)}";
+            _imageDataUrlCache[path] = dataUrl;
+            return dataUrl;
+        }
+        catch
+        {
+            return string.Empty;
+        }
     }
 
     private void RowRender(RowRenderEventArgs<MacroModel> args)

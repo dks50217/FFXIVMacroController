@@ -21,6 +21,8 @@ namespace FFXIVMacroControllerApp.Model
         public string? keyName => Enum.GetName(key);
         public string? group { get; set; }
         public string? imagePath { get; set; }
+        public decimal confidence { get; set; } = 0.8m;
+        public MouseButton mouseButton { get; set; } = MouseButton.Left;
     }
 
     public enum Types
@@ -28,5 +30,11 @@ namespace FFXIVMacroControllerApp.Model
         button = 1,
         mouse = 2,
         text = 3
+    }
+
+    public enum MouseButton
+    {
+        Left = 0,
+        Right = 1
     }
 }

@@ -11,7 +11,7 @@ namespace FFXIVMacroControllerApp.Model
     {
         public Keys key { get; set; }
         public int keyNumber { get; set; }
-        public int sleep { get; set; }
+        public double sleep { get; set; }
         public Types type { get; set; }
         public int typeNumber { get; set; }
         public string inputText { get; set; }

@@ -65,7 +65,7 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Property="@nameof(MacroModel.sleep)" Title="執行後暫停">
                 <Template Context="data">
-                    <RadzenNumeric ShowUpDown="false" TValue="int" Min="1" @bind-Value="data.sleep" Disabled="isPlaying == true" />
+                    <RadzenNumeric ShowUpDown="false" TValue="double" Min="0.1" Step="0.1" @bind-Value="data.sleep" Disabled="isPlaying == true" />
                 </Template>
             </RadzenDataGridColumn>
         <RadzenDataGridColumn Width="50px" Context="data" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">

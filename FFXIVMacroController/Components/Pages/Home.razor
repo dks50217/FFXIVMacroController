@@ -98,7 +98,7 @@
             {
                 <RadzenProgressBar @bind-Value="@ProgressBarValue">
                     <Template>
-                        <RadzenText TextStyle="TextStyle.Subtitle2"><strong>@ProgressBarValue% @(!string.IsNullOrEmpty(CountLeft) ? $"({CountLeft})" : "") @(StepCountdown.HasValue ? $"| 剩餘: {StepCountdown}s" : "")</strong></RadzenText>
+                        <RadzenText TextStyle="TextStyle.Subtitle2"><strong>@ProgressBarValue% @(!string.IsNullOrEmpty(CountLeft) ? $"({CountLeft})" : "") @(StepCountdown.HasValue ? $"| 剩餘: {StepCountdown:F1}s" : "")</strong></RadzenText>
                     </Template>
                 </RadzenProgressBar>
                 <ListComponent @ref="listComponent"
@@ -203,7 +203,7 @@
     private AlertStyle MessageAlertStyle { get; set; } = AlertStyle.Info;
     private CancellationTokenSource cancellationTokenSource = null;
     private string? CountLeft { get; set; }
-    private int? StepCountdown { get; set; }
+    private double? StepCountdown { get; set; }
     private string? LogText { get; set; }
 
     private static readonly string ConfigPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
@@ -340,18 +340,18 @@
                 await (listComponent?.FocusOnRow(item.index) ?? Task.CompletedTask);
 
                 var stepCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                int sleepSecs = item.value.sleep;
+                double sleepSecs = item.value.sleep;
                 _ = Task.Run(async () =>
                 {
-                    for (int s = sleepSecs; s >= 0; s--)
+                    double remaining = sleepSecs;
+                    while (remaining >= 0)
                     {
-                        StepCountdown = s;
+                        StepCountdown = Math.Round(remaining, 1);
                         await InvokeAsync(StateHasChanged);
-                        if (s > 0)
-                        {
-                            try { await Task.Delay(1000, stepCts.Token); }
-                            catch (OperationCanceledException) { break; }
-                        }
+                        if (remaining <= 0) break;
+                        try { await Task.Delay(100, stepCts.Token); }
+                        catch (OperationCanceledException) { break; }
+                        remaining = Math.Round(remaining - 0.1, 1);
                     }
                 });
 

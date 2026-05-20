@@ -95,6 +95,22 @@ public static partial class GameExtensions
         }
     }
 
+    public static async Task ClickAtCurrentPosition(bool rightClick = false)
+    {
+        if (rightClick)
+        {
+            mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, IntPtr.Zero);
+            await Task.Delay(100);
+            mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, IntPtr.Zero);
+        }
+        else
+        {
+            mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, IntPtr.Zero);
+            await Task.Delay(100);
+            mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, IntPtr.Zero);
+        }
+    }
+
     private static System.Drawing.Rectangle GetScreenBounds()
     {
         int width = 0, height = 0;

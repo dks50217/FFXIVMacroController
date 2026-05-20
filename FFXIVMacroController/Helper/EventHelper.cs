@@ -41,8 +41,7 @@ namespace FFXIVMacroController.Helper
                     break;
                 }
 
-                var s = TimeSpan.FromSeconds(item.sleep).TotalMilliseconds;
-                item.sleep = Convert.ToInt32(s);
+                var sleepMs = (int)TimeSpan.FromSeconds(item.sleep).TotalMilliseconds;
 
                 switch (item.type)
                 {
@@ -59,13 +58,13 @@ namespace FFXIVMacroController.Helper
                         foreach (string line in lines)
                         {
                             await game.SendLyricLine(line);
-                            await Task.Delay(item.sleep);
+                            await Task.Delay(sleepMs);
                         }
 
                         break;
                 }
 
-                await Task.Delay(item.sleep);
+                await Task.Delay(sleepMs);
             }
         }
 
@@ -107,7 +106,7 @@ namespace FFXIVMacroController.Helper
                             return;
                         }
 
-                        await Task.Delay(macro.sleep);
+                        await Task.Delay(sleep);
                     }
 
                     break;
@@ -115,6 +114,10 @@ namespace FFXIVMacroController.Helper
                     if (!string.IsNullOrEmpty(macro.imagePath))
                     {
                         await GameExtensions.LocateAndClick(macro.imagePath, (double)macro.confidence, macro.mouseButton == MouseButton.Right);
+                    }
+                    else
+                    {
+                        await GameExtensions.ClickAtCurrentPosition(macro.mouseButton == MouseButton.Right);
                     }
                     break;
             }
@@ -178,7 +181,7 @@ namespace FFXIVMacroController.Helper
 
                     model.coordinateY = coordinateY;
 
-                    model.sleep = subItem.GetProperty("sleep").GetInt16();
+                    model.sleep = subItem.GetProperty("sleep").GetDouble();
 
                     if (subItem.TryGetProperty("imagePath", out var imgProp))
                         model.imagePath = imgProp.GetString();

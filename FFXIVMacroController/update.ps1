@@ -4,8 +4,28 @@ param (
 
 $currentDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-# 等待主程式完全關閉
-Start-Sleep -Seconds 2
+# 等待主程式 exe 完全釋放檔案鎖
+if ($ExePath -ne "" -and (Test-Path $ExePath)) {
+    $maxWait = 30
+    $waited = 0
+    Write-Host "等待主程式關閉..."
+    while ($waited -lt $maxWait) {
+        try {
+            $stream = [System.IO.File]::Open($ExePath, 'Open', 'ReadWrite', 'None')
+            $stream.Close()
+            Write-Host "主程式已關閉，開始更新。"
+            break
+        } catch {
+            Start-Sleep -Seconds 1
+            $waited++
+        }
+    }
+    if ($waited -ge $maxWait) {
+        Write-Host "等待逾時，強制繼續更新..."
+    }
+} else {
+    Start-Sleep -Seconds 3
+}
 
 try {
     $zipFiles = Get-ChildItem -Path $currentDir -Filter "FFXIVMacroController_v*.zip"
@@ -48,5 +68,6 @@ try {
 
 } catch {
     Write-Host "更新過程發生錯誤: $_"
+    Read-Host "按 Enter 關閉"
     exit 1
 }

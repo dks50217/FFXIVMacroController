@@ -156,7 +156,7 @@ namespace FFXIVMacroControllerApp.Service
                 {
                     FileName = "powershell.exe",
                     Arguments = $"-ExecutionPolicy Bypass -File \"{scriptPath}\" -ExePath \"{exePath}\"",
-                    UseShellExecute = false,
+                    UseShellExecute = true,
                     CreateNoWindow = false
                 });
 

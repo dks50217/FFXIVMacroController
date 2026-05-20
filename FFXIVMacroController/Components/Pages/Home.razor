@@ -162,7 +162,11 @@
         UpdateService.OnDownloadProgress = (progress) =>
         {
             UpdateDownloadProgress = progress;
-            InvokeAsync(StateHasChanged);
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+                dialogService.Refresh();
+            });
         };
 
         await UpdateService.CheckForUpdateAsync();

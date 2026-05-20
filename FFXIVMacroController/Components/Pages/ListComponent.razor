@@ -65,7 +65,12 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Property="@nameof(MacroModel.sleep)" Title="執行後暫停">
                 <Template Context="data">
-                    <RadzenNumeric ShowUpDown="false" TValue="double" Min="0.1" Step="0.1" @bind-Value="data.sleep" Disabled="isPlaying == true" />
+                    <input type="number" step="0.1" min="0.1"
+                           value="@data.sleep"
+                           @onchange="@(e => { if (double.TryParse(e.Value?.ToString(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var v) && v > 0) data.sleep = v; })"
+                           disabled="@(isPlaying ? "disabled" : null)"
+                           class="rz-inputnumber-input"
+                           style="width:100%;text-align:right;" />
                 </Template>
             </RadzenDataGridColumn>
         <RadzenDataGridColumn Width="50px" Context="data" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
